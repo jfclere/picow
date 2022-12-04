@@ -7,6 +7,13 @@ copy the picow.conf and wifi.py to the pico
 ampy --port /dev/ttyACM0 put wifi.py
 ampy --port /dev/ttyACM0 put picow.conf
 ```
+the conf file contains:
+```
+your_ssid
+your_password
+hostname
+port
+```
 # to start it use minicom
 ```
 minicom -o -D /dev/ttyACM0
