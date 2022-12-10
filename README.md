@@ -13,6 +13,7 @@ your_ssid
 your_password
 hostname
 port
+user:password
 ```
 # to start it use minicom
 ```
