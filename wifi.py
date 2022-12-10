@@ -4,6 +4,8 @@ import socket
 import ssl
 import base64
 
+import bme280
+
 # Read configuration.
 class Picow:
  def __init__(self):
@@ -54,7 +56,8 @@ s = ssl.wrap_socket(s)
 print(s)
 
 # the string we want to write
-mess = b"Write the content of the temp.txt file"
+mess = bytes(bme280.readtemp(), 'utf-8')
+print(mess)
 
 # write it
 s.write(b"PUT /webdav/temp.txt HTTP/1.1\r\n")
@@ -75,6 +78,6 @@ s.write(b"\r\n")
 print(s.read(25))
 
 # Write the content of the temp.txt file
-s.write(b"Write the content of the temp.txt file")
+s.write(mess)
 
 print(s.read(512))
