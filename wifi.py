@@ -2,6 +2,7 @@ import time
 import network
 import socket
 import ssl
+import base64
 
 # Read configuration.
 class Picow:
@@ -11,6 +12,7 @@ class Picow:
   self.password = file.readline().strip()
   self.hostname = file.readline().strip()
   self.port = int(file.readline().strip())
+  self.userpassword = file.readline().strip()
   file.close
 def readconf():
     return Picow()
@@ -50,7 +52,29 @@ print("Connect address:", addr)
 s.connect(addr)
 s = ssl.wrap_socket(s)
 print(s)
-s.write(b"GET / HTTP/1.0\r\n\r\n")
 
-# Print the response
+# the string we want to write
+mess = b"Write the content of the temp.txt file"
+
+# write it
+s.write(b"PUT /webdav/temp.txt HTTP/1.1\r\n")
+s.write(b"Host: jfclere.myddns.me\r\n")
+s.write(b"User-Agent: picow/0.0.0\r\n")
+autho=b"Authorization: Basic " + base64.b64encode(bytes(conf.userpassword, 'utf-8'))
+print(autho)
+s.write(bytes(autho, 'utf-8'))
+s.write(b"\r\n")
+contentlength = "Content-Length: " + str(len(mess))
+print(contentlength)
+s.write(bytes(contentlength, 'utf-8'))
+s.write(b"\r\n")
+s.write(b"Expect: 100-continue\r\n")
+s.write(b"\r\n")
+
+# Print the response (b'HTTP/1.1 100 Continue\r\n\r\n')
+print(s.read(25))
+
+# Write the content of the temp.txt file
+s.write(b"Write the content of the temp.txt file")
+
 print(s.read(512))
