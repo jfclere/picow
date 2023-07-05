@@ -82,7 +82,9 @@ class Picow():
   # Write the content of the temp.txt file
   s.write(mess)
 
-  # print(s.read(512))
+  resp = s.read(512)
+
+  # print(resp)
 
   # done close the socket
   s.close()
