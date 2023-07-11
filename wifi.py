@@ -22,7 +22,7 @@ class Picow():
   self.wlan.connect(self.ssid, self.password)
 
   # Wait for connect or fail
-  max_wait = 10
+  max_wait = 30
   while max_wait > 0:
     if self.wlan.status() < 0 or self.wlan.status() >= 3:
       break
@@ -46,6 +46,7 @@ class Picow():
  def disconnectwifi(self):
    self.wlan.disconnect()
    self.wlan.active(False)
+   self.wlan.deinit()
 
  # connect and send message to the server
  def sendserver(self, mess):
