@@ -4,6 +4,8 @@ import wifi
 import machine
 import sys
 from machine import Pin
+import bme280
+import adc
 
 # main piece...
 conf = wifi.Picow()
@@ -44,7 +46,9 @@ while True:
             sys.print_exception(e)
 
     if not econnect:
-        mess = "Hello!"
+        mess = bme280.readtemp()
+        val = adc.readval()
+        mess = mess + "\nBat Val  : " + str(round(val, 2)) + "V"
         mess = bytes(mess, 'utf-8')
         try:
             conf.sendserver(mess)
@@ -72,4 +76,4 @@ while True:
         print("Sleeping: " + str(sleeptime))
         time.sleep(sleeptime)
     else:
-        machine.lightsleep(sleeptime*1000)
+        machine.deepsleep(sleeptime*1000)

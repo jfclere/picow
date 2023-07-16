@@ -13,8 +13,15 @@ class Picow():
    self.hostname = file.readline().strip()
    self.port = int(file.readline().strip())
    self.userpassword = file.readline().strip()
-   file.close
+   file.close()
    self.wlan = network.WLAN(network.STA_IF)
+
+ # read lets-encrypt-r3.der
+ def getcadata(self):
+   file = open('lets-encrypt-r3.der', 'rb')
+   cadata = file.read()
+   file.close()
+   return bytes(cadata)
 
  # connect to wifi
  def connectwifi(self):
@@ -59,7 +66,9 @@ class Picow():
   s = socket.socket()
   # print("Connect address:", addr)
   s.connect(addr)
-  s = ssl.wrap_socket(s)
+  # cadata=CA certificate chain (in DER format)
+  cadata = self.getcadata()
+  s = ssl.wrap_socket(s, cadata=cadata)
   # print(s)
 
   # write it
