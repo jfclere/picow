@@ -41,3 +41,25 @@ Connect address: ('85.1.53.36', 443)
 b'HTTP/1.1 200 OK\r\nDate: Sun, 04 Dec 2022 16:58:42 GMT\r\nServer: Apache/2.4.54 (Fedora Linux) OpenSSL/3.0.5\r\nUpgrade: h2\r\nConnection: Upgrade, close\r\nLast-Modified: Mon, 20 Sep 2021 09:54:56 GMT\r\nETag: "26e-5cc6a45f79658"\r\nAccept-Ranges: byte'
 >>> 
 ```
+
+# Note on deepsleep()
+
+## deepsleep() can prevent UBS to work.
+If you reach a point you can't interrupt main.py from running you will have to erase the flash. I have used:
+
+https://github.com/raspberrypi/pico-examples/blob/master/flash/nuke/nuke.c
+
+Build it.
+
+Use the standard process to copy the flash_nuke.uf2 in the USB mass storage.
+
+Once the flash is cleaned just put back the standard uf2 micropython im the USB
+
+I have reached 1.7 mA using a 3.7V LiPo Battery (mine has 3000mAh so enough for a long demo).
+
+## deepsleep() doesn't switch off something you configure/using after (re)boot.
+If you use wifi, gpio, i2c or adc after boot the deepsleep() will leave those on, in most of those cases the deepsleep() will just cause a reboot.
+
+The reboot switch off everything so I have use a file to enter the deepsleep mode.
+
+Writing in the flash does not prevent deepsleep() to work so all good.
