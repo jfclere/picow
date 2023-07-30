@@ -6,6 +6,7 @@ import sys
 from machine import Pin
 import bme280
 import adc
+import os
 
 # main piece...
 conf = wifi.Picow()
@@ -16,6 +17,17 @@ sleeptime = 60
 red = 22
 green = 21
 blue = 20
+
+# a file was created to tell us to sleep.
+try:
+    f = open("sleep.txt", "r")
+    f.close()
+    os.remove("sleep.txt")
+    # stop and reset after sleeptime
+    machine.deepsleep(sleeptime*1000)
+except:
+    f = open("sleep.txt", "a")
+    f.close()
 
 pin_red = Pin(red, Pin.OUT, 0)
 pin_green = Pin(green, Pin.OUT, 0)
@@ -76,4 +88,9 @@ while True:
         print("Sleeping: " + str(sleeptime))
         time.sleep(sleeptime)
     else:
-        machine.deepsleep(sleeptime*1000)
+        time.sleep(5)
+        break
+# stop and reset after sleeptime
+#conf.switchoffwifi()
+#machine.deepsleep(sleeptime*1000)
+machine.deepsleep(1000)

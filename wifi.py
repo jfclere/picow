@@ -14,7 +14,6 @@ class Picow():
    self.port = int(file.readline().strip())
    self.userpassword = file.readline().strip()
    file.close()
-   self.wlan = network.WLAN(network.STA_IF)
 
  # read lets-encrypt-r3.der
  def getcadata(self):
@@ -25,6 +24,7 @@ class Picow():
 
  # connect to wifi
  def connectwifi(self):
+  self.wlan = network.WLAN(network.STA_IF)
   self.wlan.active(True)
   self.wlan.connect(self.ssid, self.password)
 
@@ -53,6 +53,10 @@ class Picow():
  def disconnectwifi(self):
    self.wlan.disconnect()
    self.wlan.active(False)
+
+ # stop wifi for deep sleep
+ def swichoffwifi(self):
+   # cause problems with deepsleep
    self.wlan.deinit()
 
  # connect and send message to the server
