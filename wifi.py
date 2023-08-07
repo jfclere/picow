@@ -102,3 +102,62 @@ class Picow():
 
   # done close the socket
   s.close()
+
+
+ # connect and receive a file from server
+ def getfromserver(self, name):
+
+  ai = socket.getaddrinfo(self.hostname, self.port)
+  # print("Address infos:", ai)
+  addr = ai[0][-1]
+
+  # Create a socket and make a HTTP request
+  s = socket.socket()
+  # print("Connect address:", addr)
+  s.connect(addr)
+  # cadata=CA certificate chain (in DER format)
+  cadata = self.getcadata()
+  s = ssl.wrap_socket(s, cadata=cadata)
+  # print(s)
+
+  # write request
+  s.write(b"GET /webdav/")
+  s.write(bytearray(name, 'utf8'))
+  s.write(b" HTTP/1.1\r\n")
+  s.write(b"Host: jfclere.myddns.me\r\n")
+  s.write(b"User-Agent: picow/0.0.0\r\n")
+  s.write(b"\r\n")
+
+  resp = s.read(512)
+  string = str(resp, "utf-8")
+  headers = string.split("\r\n")
+  l = 0
+  size = 0
+  indata = False
+  f = open(name, "w")
+  for header in headers:
+    if "Content-Length:" in header:
+      # Length to read.
+      cl = header.split(": ")
+      print(cl[1])
+      l = int(cl[1])
+      continue
+    if l>0 and not indata:
+      # We skip until empty line
+      if len(header) == 0:
+        indata = True
+        continue
+    if indata:
+      # Store the line in a file
+      print("data: " + header)
+      f.write(header)
+      size = size + len(header)
+      if size == l:
+        break # Done!
+  while size < l:
+    resp = s.read(512)
+    f.write(resp)
+    size = size + len(resp)
+  f.close()
+  # done close the socket
+  s.close()
