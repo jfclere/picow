@@ -27,11 +27,91 @@
 char ssid[] = MY_SSID;        // your network SSID (name)
 char pass[] = MY_PASS;    // your network password (use for WPA, or use as key for WEP)
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
+
+/* For the other part of example  */
 char SERVER[] = "jfclere.myddns.me";
 char BASE_URI[] = "/webdav/temp.txt";
 int READ_TIMEOUT = 60;
 
-void setup() {
+/*************************************************************
+
+  This is a simple demo of sending and receiving some data.
+  Be sure to check out other examples!
+ *************************************************************/
+
+
+
+
+/* Comment this out to disable prints and save space */
+#define BLYNK_PRINT Serial
+
+
+// #include <SPI.h>
+// #include <WiFi101.h>
+#include <BlynkSimpleWiFiNINA.h>
+// #include <BlynkSimpleWiFiShield101.h>
+
+BlynkTimer timer;
+
+// This function is called every time the Virtual Pin 0 state changes
+BLYNK_WRITE(V0)
+{
+  // Set incoming value from pin V0 to a variable
+  int value = param.asInt();
+  Serial.print("BLYNK_WRITE: ");
+  Serial.println(value);
+
+  // Update state
+  Blynk.virtualWrite(V1, 0);
+}
+
+// This function is called every time the device is connected to the Blynk.Cloud
+BLYNK_CONNECTED()
+{
+  // Change Web Link Button message to "Congratulations!"
+  Blynk.setProperty(V3, "offImageUrl", "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations.png");
+  Blynk.setProperty(V3, "onImageUrl",  "https://static-image.nyc3.cdn.digitaloceanspaces.com/general/fte/congratulations_pressed.png");
+  Blynk.setProperty(V3, "url", "https://docs.blynk.io/en/getting-started/what-do-i-need-to-blynk/how-quickstart-device-was-made");
+}
+
+// This function sends Arduino's uptime every second to Virtual Pin 2.
+void myTimerEvent()
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V2, millis() / 1000);
+  Blynk.virtualWrite(V5, 666);
+}
+
+void setup()
+{
+  // Debug console
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, "blynk.cloud", 80);
+  // You can also specify server:
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, "blynk.cloud", 80);
+  //Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass, IPAddress(192,168,1,100), 8080);
+
+  // Setup a function to be called every second
+  timer.setInterval(1000L, myTimerEvent);
+}
+
+void loop()
+{
+  Blynk.run();
+  timer.run();
+  // You can inject your own code or combine it with other sketches.
+  // Check other examples on how to communicate with Blynk. Remember
+  // to avoid delay() function!
+}
+
+
+
+void jfc_setup() {
 
   //Initialize serial and wait for port to open:
 
@@ -75,7 +155,7 @@ void setup() {
 
 }
 
-void loop() {
+void jfc_loop() {
 
   // check the network connection once every 10 seconds:
 
