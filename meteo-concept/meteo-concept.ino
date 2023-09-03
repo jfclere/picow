@@ -209,6 +209,93 @@ void printMacAddress(byte mac[]) {
   Serial.println();
 }
 
+typedef enum Level {
+  NONE,
+  HEADER,
+  CHUNK,
+  DATA,
+  DONE
+} Level;
+
+
+Level processmessdata(char *mess, int ret, Level initialstate);
+
+bool ischunked = 0;
+int remainingdata = 0;
+
+char jsonbuff[2048]; // big enough or play with realloc!
+
+Level processmessdata(char *mess, int ret, Level initialstate)
+{
+  int i = 0;
+  int l = 0;
+  Level state = initialstate;
+  int size = 0;
+  
+  while (mess[i]) {
+    if (mess[i] == '\r') {
+      mess[i]= '\0';
+      Serial.println(&mess[l]);
+      switch(state) {
+        case NONE:
+          Serial.println("state: NONE");
+          if (strstr(&mess[l], "OK"))
+            state = HEADER;
+          break;
+        case HEADER:
+          Serial.print("state: HEADER *");
+          Serial.print(&mess[l]);
+          Serial.println("*");
+          if (!mess[l]) {
+            if (ischunked)
+              state = CHUNK;
+            else
+              state = DATA;
+          }
+          // Check for chunked
+          if (strstr(&mess[l],"Transfer-Encoding: chunked"))
+            ischunked = 1;
+          break;
+        case CHUNK:
+          Serial.println("state: CHUNK");
+          // The chunk tell us the size of the data in the next bloc
+          sscanf (&mess[l],"%x",&size);
+          remainingdata =  size;
+          Serial.print("state: CHUNK: ");
+          Serial.println(size);
+          if (ischunked && size>0)
+            state = DATA;
+          else
+            state = DONE;
+          break;
+        case DATA:
+          Serial.println("state: DATA");
+          if (ischunked) {
+            remainingdata = remainingdata - strlen(&mess[l]);
+            if (remainingdata<=0)
+              state = CHUNK;
+          }
+          Serial.println("DATA:");
+          Serial.println(&mess[l]);
+          strcat(jsonbuff,&mess[l]);
+          break;
+      }
+      l = i + 2;
+      if (!mess[l])
+        break; // Done
+    }
+    i++;
+  }
+  if (mess[l]) {
+    Serial.println("Done remaining data:");
+    Serial.println(&mess[l]);
+    strcat(jsonbuff,&mess[l]);
+    remainingdata = remainingdata - strlen(&mess[l]);
+  } else 
+    Serial.println("Done!");
+  return state;
+}
+
 bool sendtoserver() {
   WiFiSSLClient client;
   char url[256];
@@ -258,6 +345,8 @@ bool sendtoserver() {
     }
 
     // Read the response: it is chunked
+    Level state = NONE;
+    jsonbuff[0] = '\0';
     while (client.connected()) {
       int ret =  client.available(); 
       if (ret>0) {
@@ -267,80 +356,22 @@ bool sendtoserver() {
         Serial.println("received:");
         mess[ret] = '\0';
         Serial.println(mess);
-        processmessdata(mess, ret);
+        state = processmessdata(mess, ret, state);
         free(mess);
       }
   
     }
+    Serial.println("JSON");
+    int sizebuff = strlen(jsonbuff);
+    for (int i = 0; i<sizebuff; i=i+80) {
+      char buffet[81];
+      memcpy(buffet, &jsonbuff[i], 80);
+      buffet[80] = '\0';
+      Serial.println(buffet);
+    }
+    Serial.println("JSON");
     client.stop();
   }
   return true;
 }
-enum Level {
-  NONE,
-  HEADER,
-  CHUNK,
-  DATA
-};
-void processmessdata(char *mess, int ret)
-{
-  int i = 0;
-  int l = 0;
-  enum Level state = NONE;
-  bool ischunked = 0;
-  
-  while (mess[i]) {
-    if (mess[i] == '\r') {
-      mess[i]= '\0';
-      Serial.println(&mess[l]);
-      switch(state) {
-        case NONE:
-          Serial.println("state: NONE");
-          if (strstr(&mess[l], "OK"))
-          state = HEADER;
-          break;
-        case HEADER:
-          Serial.print("state: HEADER *");
-          Serial.print(&mess[l]);
-          Serial.println("*");
-          if (!mess[l]) {
-            if (ischunked)
-              state = CHUNK;
-            else
-              state = DATA;
-            break;
-          }
-          if (!strchr(&mess[l],':'))
-            state = DATA; // Probably old server...
-          else {
-            // Check for chunked
-            if (strstr(&mess[l],"Transfer-Encoding: chunked"))
-              ischunked = 1;
-          }
-          break;
-        case CHUNK:
-          Serial.println("state: CHUNK");
-          // The chunk tell us the size of the data in the next bloc
-          if (ischunked)
-            state = DATA;
-          break;
-        case DATA:
-          Serial.println("state: DATA");
-          if (ischunked)
-            state = CHUNK;
-          Serial.println("DATA:");
-          Serial.println(&mess[l]);
-          break;
-      }
-      l = i + 2;
-      if (!mess[l])
-        break; // Done
-    }
-    i++;
-  }
-  if (mess[l]) {
-    Serial.println("Done remaining data:");
-    Serial.println(&mess[l]);
-  } else 
-    Serial.println("Done!");
-}
+
