@@ -63,3 +63,7 @@ If you use wifi, gpio, i2c or adc after boot the deepsleep() will leave those on
 The reboot switch off everything so I have use a file to enter the deepsleep mode.
 
 Writing in the flash does not prevent deepsleep() to work so all good.
+
+# Note on ADC
+
+Remember the Vref is 3.3V so you need a divider to measure a LIPO battery.
