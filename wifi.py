@@ -76,7 +76,7 @@ class Picow():
   # print(s)
 
   # write it
-  s.write(b"PUT /webdav/temp.txt HTTP/1.1\r\n")
+  s.write(b"PUT /webdav/rp2040/temp.txt HTTP/1.1\r\n")
   s.write(b"Host: jfclere.myddns.me\r\n")
   s.write(b"User-Agent: picow/0.0.0\r\n")
   autho=b"Authorization: Basic " + base64.b64encode(bytes(self.userpassword, 'utf-8'))
