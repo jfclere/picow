@@ -57,6 +57,8 @@ int READ_TIMEOUT = 60;
 
 char base64[128];
 
+int count;
+
 Bme280TwoWire sensor;
 
 void setup() {
@@ -103,6 +105,8 @@ void setup() {
   sensor.begin(Bme280TwoWireAddress::Primary);
   sensor.setSettings(Bme280Settings::indoor());
 
+  count = 6;
+
 }
 
 void loop() {
@@ -114,20 +118,27 @@ void loop() {
   
   Serial.println("Starting loop");
 
-  auto temperature = String(sensor.getTemperature()) + "C";
-  auto pressure = String(sensor.getPressure() / 100.0) + "hPa";
-  auto humidity = String(sensor.getHumidity()) + "%";
 
-  String measurements = "Temperature : " + temperature + "\nPressure : " + pressure + "\nHumidity : " + humidity +"\n";
-  Serial.println(measurements);
-  Serial.println("have BME280 info");
 
   printCurrentNet();
-  if (!sendtojfc(measurements)) {
-    Serial.print("Something is fishy...");
-    WiFi.end();
-    connecttowifi();
-  }
+  if (count == 6) {
+    auto temperature = String(sensor.getTemperature()) + "C";
+    auto pressure = String(sensor.getPressure() / 100.0) + "hPa";
+    auto humidity = String(sensor.getHumidity()) + "%";
+
+    String measurements = "Temperature : " + temperature + "\nPressure : " + pressure + "\nHumidity : " + humidity +"\n";
+    Serial.println(measurements);
+    Serial.println("have BME280 info");
+    if (!sendtojfc(measurements)) {
+      Serial.print("Something is fishy...");
+      digitalWrite(BLUE, LOW);
+      WiFi.end();
+      connecttowifi();
+    } else {
+      count = 0;
+    }
+  } else
+    count++;
 }
 
 void connecttowifi() {
