@@ -8,8 +8,6 @@ import base64
 class Picow():
  def __init__(self):
    file = open('picow.conf', 'r')
-   self.ssid = file.readline().strip()
-   self.password = file.readline().strip()
    self.hostname = file.readline().strip()
    self.port = int(file.readline().strip())
    self.userpassword = file.readline().strip()
@@ -22,11 +20,43 @@ class Picow():
    file.close()
    return bytes(cadata)
 
+  # Read wpa_supplicant.conf
+ def readpassconf(self, ident):
+   with open('wpa_supplicant.conf', 'r') as f:
+     while True:
+       line = f.readline()
+       if not line:
+         break
+       line = line.strip()
+       if line.startswith('ssid='):
+         ssid = line.split('"')
+       else:
+         continue
+       line = f.readline()
+       if not line:
+         break
+       line = line.strip()
+       if line.startswith('psk='):
+         psk = line.split('"')
+         if ssid[1] == ident:
+           return psk[1]
+   return None
+
  # connect to wifi
  def connectwifi(self):
   self.wlan = network.WLAN(network.STA_IF)
   self.wlan.active(True)
-  self.wlan.connect(self.ssid, self.password)
+  nets = self.wlan.scan()
+  password = None
+  for net in nets:
+    ssid = net[0].decode('ascii')
+    password = self.readpassconf(ssid)
+    if password:
+      break
+
+  if not password:
+    raise RuntimeError('cannot find ssid/psk in wpa_supplicant.conf')
+  self.wlan.connect(ssid, password)
 
   # Wait for connect or fail
   max_wait = 30
