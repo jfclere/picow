@@ -50,6 +50,7 @@ class Picow():
   password = None
   for net in nets:
     ssid = net[0].decode('ascii')
+    print("connectwifi trying: " + ssid)
     password = self.readpassconf(ssid)
     if password:
       break
