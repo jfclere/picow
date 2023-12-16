@@ -4,7 +4,6 @@ import time
 import math
 import sys
 import os
-import requests
 
 #
 # This class read the info the server has for us
@@ -48,35 +47,76 @@ class nodeinfo:
     if x[0] == "machine":
       self.server=x[1].rstrip()
 
+  # cut content of response in lines
+  def readcontent(self, c):
+    c = c.decode('ascii')
+    s = c.split("\n")
+    return s
+
   # get our configuration from server
-  def read(self):
+  def read(self, wifi):
     print('nodeinfo.read')
     try:
-      r = requests.get('https://' + self.server + '/machines/' + self.machine_id)
-      print("nodeinfo.read Done: " + str(r.status_code))
-      if (r.status_code == 200):
-        # Read the information
-        i = 0
-        for l in r.iter_lines():
-          l = l.decode('ascii')
-          if i == 0:
-            self.REMOTE_DIR=l
-          if i == 1:
-            self.WAIT_TIME=int(l)
-          if i == 2:
-            self.BAT_LOW=int(l)
-          if i == 3:
-            self.GIT_VER=l
-          if i == 4:
-            self.BATCHARGED=int(l)
-          if i == 5:
-            self.TIME_ACTIVE=int(l)
-          i = i + 1
-        return False
-      if (r.status_code == 404):
+      s = wifi.getfromserver('/machines/' + self.machine_id)
+      resp = s.read(512)
+      string = str(resp, "utf-8")
+      print("resp: " + string)
+      headers = string.split("\r\n")
+      i = 0
+      l = 0
+      status = 0
+      indata = False
+      for header in headers:
+        print("header: *" + header + "*")
+        if "HTTP/" in header:
+          # Status to read.
+          cl = header.split(" ")
+          print(cl[1])
+          status = int(cl[1])
+          continue
+        if "Content-Length:" in header:
+          # Length to read.
+          cl = header.split(": ")
+          print(cl[1])
+          l = int(cl[1])
+          continue
+        if l>0 and not indata:
+          # We skip until empty line
+          if len(header) == 0:
+            indata = True
+          continue
+        if indata:
+          if status != 200:
+            continue # ignore response
+          # Read the information
+          print("nodeinfo.read received: " + header)
+          print("nodeinfo.read received: " + str(len(header)))
+          print("nodeinfo.read received: " + str(l))
+          if len(header) == l:
+            data = header.split("\n")
+            for info in data:
+              if i == 0:
+                self.REMOTE_DIR=info
+              if i == 1:
+                self.WAIT_TIME=int(info)
+              if i == 2:
+                self.BAT_LOW=int(info)
+              if i == 3:
+                self.GIT_VER=info
+              if i == 4:
+                self.BATCHARGED=int(info)
+              if i == 5:
+                self.TIME_ACTIVE=int(info)
+              i = i + 1
+          continue
+      s.close()
+      return False
+      if (status == 404):
         # 404 means mainteance
         self.MAINT_MODE=True
+        r.close()
         return False
+      r.close()
       return True
     except Exception as e:
       print('nodeinfo.read Exception: ' + str(e))

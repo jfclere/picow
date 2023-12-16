@@ -3,6 +3,7 @@ import network
 import socket
 import ssl
 import base64
+import ntptime
 
 # Read configuration.
 class Picow():
@@ -12,6 +13,8 @@ class Picow():
    self.port = int(file.readline().strip())
    self.userpassword = file.readline().strip()
    file.close()
+   self.wlan = network.WLAN(network.STA_IF)
+   self.wlan.active(True)
 
  # read lets-encrypt-r3.der
  def getcadata(self):
@@ -42,10 +45,15 @@ class Picow():
            return psk[1]
    return None
 
+ # do we see access points
+ def hasAP(self):
+  nets = self.wlan.scan()
+  if len(nets) <=  0:
+    return False
+  return True
+
  # connect to wifi
  def connectwifi(self):
-  self.wlan = network.WLAN(network.STA_IF)
-  self.wlan.active(True)
   nets = self.wlan.scan()
   password = None
   for net in nets:
@@ -70,6 +78,20 @@ class Picow():
   # Handle connection error
   if self.wlan.status() != 3:
     raise RuntimeError('network connection failed')
+
+  # Set time and date (for TLS?)
+  ntptime.host = "de.pool.ntp.org"
+  ntptime.settime()
+
+  # check address resolver
+  ## ai = socket.getaddrinfo("jfclere.myddns.me", 443)
+  # print("Address infos:", ai)
+  ## addr = ai[0][-1]
+  ## print("Address infos:", ai)
+  ## print("Address :", addr)
+
+  ## self.sendstatustoserver("/machines/report-/machines/report-68fa56d97f7c4ad18b377cc5780ee6ff-titi")
+
 
  # Get the IP addess
  def getip(self):
@@ -135,8 +157,11 @@ class Picow():
   s.close()
 
 
+ # connect and return a socket to the server
  # connect and receive a file from server
  def getfromserver(self, name):
+
+  print("getfromserver: " + name)
 
   ai = socket.getaddrinfo(self.hostname, self.port)
   # print("Address infos:", ai)
@@ -152,12 +177,17 @@ class Picow():
   # print(s)
 
   # write request
-  s.write(b"GET /webdav/")
+  s.write(b"GET /")
   s.write(bytearray(name, 'utf8'))
   s.write(b" HTTP/1.1\r\n")
   s.write(b"Host: jfclere.myddns.me\r\n")
   s.write(b"User-Agent: picow/0.0.0\r\n")
   s.write(b"\r\n")
+  return s
+
+ # connect and receive a file from server
+ def getfilefromserver(self, name):
+  s = self.getfromserver("/webdav/" + name)
 
   resp = s.read(512)
   string = str(resp, "utf-8")
@@ -192,3 +222,59 @@ class Picow():
   f.close()
   # done close the socket
   s.close()
+
+ # connect and send a get (STATUS) to server
+ def sendstatustoserver(self, name):
+
+  print("sendstatustoserver: " + self.hostname + ":" + str(self.port) + " " + name);
+  
+  status = self.wlan.ifconfig()
+  print("status: " + status[0])
+  # status[3] = '8.8.8.8'
+  #if status[2] == status[3]:
+  #  print("status: " + status[2])
+  #  print("status: " + status[3])
+  #  self.wlan.ifconfig((status[0], status[1], status[2], '8.8.8.8'))
+  print("status: " + str(self.wlan.status()))
+  print("status: " + str(self.wlan.isconnected()))
+  #status = self.wlan.ifconfig()
+  print("status: (3)" + status[3])
+  ai = socket.getaddrinfo('jfclere.myddns.me', self.port)
+  print("Address infos:", ai)
+  addr = ai[0][-1]
+
+  # Create a socket and make a HTTP request
+  ## s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  s = socket.socket()
+  s.connect(addr)
+  print(s)
+  print("Connect address:", addr)
+  # cadata=CA certificate chain (in DER format)
+  cadata = self.getcadata()
+  s = ssl.wrap_socket(s, cadata=cadata)
+  print(s)
+
+  # write request
+  s.write(b"GET ")
+  s.write(bytearray(name, 'utf8'))
+  s.write(b" HTTP/1.1\r\n")
+  s.write(b"Host: jfclere.myddns.me\r\n")
+  s.write(b"User-Agent: picow/0.0.0\r\n")
+  s.write(b"\r\n")
+
+  print("waiting response...")
+  resp = s.read(512)
+  string = str(resp, "utf-8")
+  headers = string.split("\r\n")
+  for header in headers:
+    print("header: " + header)
+    if "HTTP/" in header:
+      # Length to read.
+      cl = header.split(" ")
+      print(cl[1])
+      l = int(cl[1])
+      s.close()
+      return l
+  # done close the socket
+  s.close()
+  return 0

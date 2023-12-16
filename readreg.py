@@ -13,22 +13,30 @@ class readreg:
     # we can 0, 2, 4, 6, 8 or 16
     if wait == 0 or wait == 2 or wait == 4 or wait == 6 :
       # read val, batlow, batcharged
-      self.i2c.writeto(DEVICE, wait)
-      reply0 = int(self.i2c.readfrom(DEVICE,1))
-      reply1 = int(self.i2c.readfrom(DEVICE,1))
+      mybytes = wait.to_bytes(1, 'little')
+      data = [ mybytes[0] ]
+      self.i2c.writeto(DEVICE, bytearray(data))
+      replyb = self.i2c.readfrom(DEVICE,2)
+      reply0 = int(replyb[0])
+      reply1 = int(replyb[1])
       val = reply0 + (reply1 * 256)
       return(val)
     elif wait == 8 :
       # read stopfor (long)
-      self.i2c.writeto(DEVICE, wait)
-      reply0 = int(self.i2c.readfrom(DEVICE,1))
-      reply1 = int(self.i2c.readfrom(DEVICE,1))
-      reply2 = int(self.i2c.readfrom(DEVICE,1))
-      reply3 = int(self.i2c.readfrom(DEVICE,1))
+      mybytes = wait.to_bytes(1, 'little')
+      data = [ mybytes[0] ]
+      self.i2c.writeto(DEVICE, bytearray(data))
+      replyb = self.i2c.readfrom(DEVICE,4)
+      reply0 = int(replyb[0])
+      reply1 = int(replyb[1])
+      reply2 = int(replyb[2])
+      reply3 = int(replyb[3])
       val = ((reply3 * 256 + reply2)*256 + reply1) * 256 + reply0
       return(val)
     elif wait == 16:
       # read testmode
-      self.i2c.writeto(DEVICE, wait)
+      mybytes = wait.to_bytes(1, 'little')
+      data = [ mybytes[0] ]
+      self.i2c.writeto(DEVICE, bytearray(data))
       val = self.i2c.readfrom(DEVICE,1)
       return(hex(val))

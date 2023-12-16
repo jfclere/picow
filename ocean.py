@@ -11,7 +11,7 @@ from readreg import readreg
 from writereg import writereg
 from reportserver import reportserver
 
-OCEANGPIO=23
+OCEANGPIO=19 ## 23 Controls the on-board SMPS Power Save pin!!!
 REDLED = 22
 GREENLED = 21
 BLUELED=20
@@ -51,7 +51,7 @@ pin_ocean = Pin(OCEANGPIO, Pin.OUT, 0)
 
 # wait until we have an IP
 i = 1
-while i < 30:
+while i < 3:
   try:
     conf.connectwifi()
     print("after conf.connectwifi(()")
@@ -64,10 +64,11 @@ while i < 30:
     continue
   break
 net = True 
-if i == 30:
+if i == 3:
   # We don't have network
   net = False
   pin_blue.on()
+  machine.reset() 
 
 if not net:
   print("NO Network!")
@@ -75,7 +76,7 @@ else:
   print("Connected")
 
 myinfo = nodeinfo()
-if myinfo.read():
+if myinfo.read(conf):
   # Use some default values
   print("myinfo.read() Failed!")
   myinfo.TIME_ACTIVE = 1
@@ -87,16 +88,21 @@ if myinfo.MAINT_MODE:
   try:
     myreg = readreg()
     myreportserver = reportserver()
-    myreportserver.report(myinfo, myreg)
-  except: 
+    myreportserver.report(myinfo, myreg, conf)
+  except Exception as e:
     print("report to server failed")
+    print(str(e))
   print("myinfo.read() Failed maintenance mode!")
   # in fact if we don't have a conf what should we do???
 
 if myinfo.TIME_ACTIVE > 0:
   print("on for " + str(myinfo.TIME_ACTIVE) + " Minutes")
-  pin_ocean.on()
-  time.sleep(60*myinfo.TIME_ACTIVE)
+  try:
+    pin_ocean.on()
+  except Exception as e:
+    print("pin_ocean.on failed")
+    print(str(e))
+  # JFC time.sleep(60*myinfo.TIME_ACTIVE)
   print("Done")
 
 # end make sure to stop
@@ -107,10 +113,11 @@ if net:
   try:
     myreg = readreg()
     myreportserver = reportserver()
-    myreportserver.report(myinfo, myreg)
+    myreportserver.report(myinfo, myreg, conf)
     updatereg(myinfo, myreg)
-  except: 
+  except Exception as e:
     print("report to server failed")
+    print(str(e))
     net = False
 
 # update software
@@ -129,3 +136,8 @@ if net:
 
 # stop and wait
 stopatt(myinfo.WAIT_TIME)
+
+while True:
+  print("Done having fun looping!")
+  time.sleep(1000)
+  conf.sendstatustoserver("/machines/report-/machines/report-68fa56d97f7c4ad18b377cc5780ee6ff-loop")
