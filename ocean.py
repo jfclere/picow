@@ -49,6 +49,11 @@ pin_green = Pin(GREENLED, Pin.OUT, 0)
 pin_blue = Pin(BLUELED, Pin.OUT, 0)
 pin_ocean = Pin(OCEANGPIO, Pin.OUT, 0)
 
+pin_red.off()
+pin_green.off()
+pin_blue.off()
+pin_ocean.off()
+
 # wait until we have an IP
 i = 1
 while i < 3:
@@ -67,12 +72,12 @@ net = True
 if i == 3:
   # We don't have network
   net = False
-  pin_blue.on()
   machine.reset() 
 
 if not net:
   print("NO Network!")
 else:
+  pin_blue.on()
   print("Connected")
 
 myinfo = nodeinfo()
@@ -82,23 +87,41 @@ if myinfo.read(conf):
   myinfo.TIME_ACTIVE = 1
   myinfo.WAIT_TIME = 3405
   myinfo.MAINT_MODE = False
+else:
+  pin_green.on()
 
+reg = True
+myreg = readreg()
 if myinfo.MAINT_MODE:
   # Maintenance mode required
   try:
-    myreg = readreg()
+    myreg.init()
+    myreg.read(0)
+  except Exception as e:
+    print("reading i2c failed")
+    print(str(e))
+    reg = False 
+  try:
     myreportserver = reportserver()
     myreportserver.report(myinfo, myreg, conf)
   except Exception as e:
     print("report to server failed")
     print(str(e))
   print("myinfo.read() Failed maintenance mode!")
-  # in fact if we don't have a conf what should we do???
+  # if we have i2c switch off for ~2 minutes
+  if reg:
+    try:
+      stopatt(2)
+    except Exception as e:
+      print("stopatt failed")
+  time.sleep(120)
+  machine.reset() 
 
 if myinfo.TIME_ACTIVE > 0:
   print("on for " + str(myinfo.TIME_ACTIVE) + " Minutes")
   try:
     pin_ocean.on()
+    time.sleep(60*myinfo.TIME_ACTIVE)
   except Exception as e:
     print("pin_ocean.on failed")
     print(str(e))
@@ -111,7 +134,13 @@ pin_ocean.off()
 # update register
 if net:
   try:
-    myreg = readreg()
+    myreg.init()
+    myreg.read(0)
+  except Exception as e:
+    print("reading i2c failed")
+    print(str(e))
+    reg = False 
+  try:
     myreportserver = reportserver()
     myreportserver.report(myinfo, myreg, conf)
     updatereg(myinfo, myreg)
@@ -119,6 +148,9 @@ if net:
     print("report to server failed")
     print(str(e))
     net = False
+
+if reg:
+  pin_red.on()
 
 # update software
 # if net:
@@ -135,8 +167,16 @@ if net:
 # 
 
 # stop and wait
-stopatt(myinfo.WAIT_TIME)
+if reg:
+  try:
+    stopatt(myinfo.WAIT_TIME)
+  except Exception as e:
+    print("stopatt failed")
+    print(str(e))
+    reg = False 
 
+# wait until we are stopped or not.
+time.sleep(60*myinfo.WAIT_TIME)
 while True:
   print("Done having fun looping!")
   time.sleep(1000)

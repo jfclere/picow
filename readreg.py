@@ -7,6 +7,8 @@ class readreg:
 
   def __init__(self):
     self.i2c = I2C(0, scl=Pin(5), sda=Pin(4), freq=100000)
+
+  def init(self):
     self.i2c.scan()
 
   def read(self, wait):

@@ -229,30 +229,30 @@ class Picow():
   print("sendstatustoserver: " + self.hostname + ":" + str(self.port) + " " + name);
   
   status = self.wlan.ifconfig()
-  print("status: " + status[0])
+  # print("status: " + status[0])
   # status[3] = '8.8.8.8'
   #if status[2] == status[3]:
   #  print("status: " + status[2])
   #  print("status: " + status[3])
   #  self.wlan.ifconfig((status[0], status[1], status[2], '8.8.8.8'))
-  print("status: " + str(self.wlan.status()))
-  print("status: " + str(self.wlan.isconnected()))
+  # print("status: " + str(self.wlan.status()))
+  # print("status: " + str(self.wlan.isconnected()))
   #status = self.wlan.ifconfig()
-  print("status: (3)" + status[3])
+  # print("status: (3)" + status[3])
   ai = socket.getaddrinfo('jfclere.myddns.me', self.port)
-  print("Address infos:", ai)
+  # print("Address infos:", ai)
   addr = ai[0][-1]
 
   # Create a socket and make a HTTP request
   ## s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s = socket.socket()
   s.connect(addr)
-  print(s)
-  print("Connect address:", addr)
+  # print(s)
+  # print("Connect address:", addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
-  print(s)
+  # print(s)
 
   # write request
   s.write(b"GET ")
