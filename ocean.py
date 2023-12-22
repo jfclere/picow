@@ -4,7 +4,9 @@
 import os
 import time
 import socket
+import sys
 import wifi
+from myprint import cantprint, canprint, myprint
 from machine import Pin
 from nodeinfo import nodeinfo
 from readreg import readreg
@@ -23,11 +25,11 @@ def updatereg(nodeinfo, readreg):
   setbatlow = nodeinfo.BAT_LOW
   setbatcharged = nodeinfo.BATCHARGED
   if setbatlow > 0 and setbatlow != batlow:
-    print("batlow: " + str(batlow) + ":" + str(setbatlow))
+    myprint("batlow: " + str(batlow) + ":" + str(setbatlow))
     mywritereg = writereg()
     mywritereg.write(2, setbatlow)
   if setbatcharged > 0 and setbatcharged != batcharged:
-    print("batcharged: " + str(batcharged) + ":" + str(setbatcharged))
+    myprint("batcharged: " + str(batcharged) + ":" + str(setbatcharged))
     mywritereg = writereg()
     mywritereg.write(4, setbatcharged)
 
@@ -37,13 +39,12 @@ def stopatt(wait):
   myreg = readreg()
   val = myreg.read(8)
   if val != wait:
-    print("stopatt read doesn't give right value")
+    myprint("stopatt read doesn't give right value")
   # JFC not sure what to do... os.system("sudo init 0")
 
-# main part...    
-
-conf = wifi.Picow()
-
+#
+# main part...
+#
 pin_red = Pin(REDLED, Pin.OUT, 0)
 pin_green = Pin(GREENLED, Pin.OUT, 0)
 pin_blue = Pin(BLUELED, Pin.OUT, 0)
@@ -54,15 +55,24 @@ pin_green.off()
 pin_blue.off()
 pin_ocean.off()
 
+pin_usb = Pin('WL_GPIO2', Pin.IN)
+usb = pin_usb.value()
+if usb == 1:
+    print("USB connected")
+    canprint()
+else:
+    cantprint()
+
+conf = wifi.Picow()
 # wait until we have an IP
 i = 1
 while i < 3:
   try:
     conf.connectwifi()
-    print("after conf.connectwifi(()")
+    myprint("after conf.connectwifi(()")
   except Exception as e:
-    print("exception in conf.connectwifi()!")
-    print(str(e))
+    myprint("exception in conf.connectwifi()!")
+    myprint(str(e))
     # JFC not sure what to do... need fix sys.print_exception(e)
     time.sleep(1)
     i += 1
@@ -75,15 +85,15 @@ if i == 3:
   machine.reset() 
 
 if not net:
-  print("NO Network!")
+  myprint("NO Network!")
 else:
   pin_blue.on()
-  print("Connected")
+  myprint("Connected")
 
 myinfo = nodeinfo()
 if myinfo.read(conf):
   # Use some default values
-  print("myinfo.read() Failed!")
+  myprint("myinfo.read() Failed!")
   myinfo.TIME_ACTIVE = 1
   myinfo.WAIT_TIME = 3405
   myinfo.MAINT_MODE = False
@@ -98,35 +108,35 @@ if myinfo.MAINT_MODE:
     myreg.init()
     myreg.read(0)
   except Exception as e:
-    print("reading i2c failed")
-    print(str(e))
+    myprint("reading i2c failed")
+    myprint(str(e))
     reg = False 
   try:
     myreportserver = reportserver()
     myreportserver.report(myinfo, myreg, conf)
   except Exception as e:
-    print("report to server failed")
-    print(str(e))
-  print("myinfo.read() Failed maintenance mode!")
+    myprint("report to server failed")
+    myprint(str(e))
+  myprint("myinfo.read() Failed maintenance mode!")
   # if we have i2c switch off for ~2 minutes
   if reg:
     try:
       stopatt(2)
     except Exception as e:
-      print("stopatt failed")
+      myprint("stopatt failed")
   time.sleep(120)
   machine.reset() 
 
 if myinfo.TIME_ACTIVE > 0:
-  print("on for " + str(myinfo.TIME_ACTIVE) + " Minutes")
+  myprint("on for " + str(myinfo.TIME_ACTIVE) + " Minutes")
   try:
     pin_ocean.on()
     time.sleep(60*myinfo.TIME_ACTIVE)
   except Exception as e:
-    print("pin_ocean.on failed")
-    print(str(e))
+    myprint("pin_ocean.on failed")
+    myprint(str(e))
   # JFC time.sleep(60*myinfo.TIME_ACTIVE)
-  print("Done")
+  myprint("Done")
 
 # end make sure to stop
 pin_ocean.off()
@@ -137,16 +147,18 @@ if net:
     myreg.init()
     myreg.read(0)
   except Exception as e:
-    print("reading i2c failed")
-    print(str(e))
+    myprint("reading i2c failed")
+    myprint(str(e))
     reg = False 
   try:
     myreportserver = reportserver()
-    myreportserver.report(myinfo, myreg, conf)
-    updatereg(myinfo, myreg)
+    if reg:
+      myreportserver.report(myinfo, myreg, conf)
+      updatereg(myinfo, myreg)
+    myreportserver.reportip(myinfo, conf)
   except Exception as e:
-    print("report to server failed")
-    print(str(e))
+    myprint("report to server failed")
+    myprint(str(e))
     net = False
 
 if reg:
@@ -159,11 +171,11 @@ if reg:
 #     if ver != myinfo.GIT_VER:
 #       cmd = "/home/pi/pisolar/gitver.sh " + myinfo.GIT_VER
 #       if os.system(cmd):
-#         print(cmd + " Failed")
+#         myprint(cmd + " Failed")
 #       else:
 #         myinfo.saveconf()
 #   except: 
-#     print("software update failed")
+#     myprint("software update failed")
 # 
 
 # stop and wait
@@ -171,13 +183,11 @@ if reg:
   try:
     stopatt(myinfo.WAIT_TIME)
   except Exception as e:
-    print("stopatt failed")
-    print(str(e))
+    myprint("stopatt failed")
+    myprint(str(e))
     reg = False 
 
 # wait until we are stopped or not.
-time.sleep(60*myinfo.WAIT_TIME)
-while True:
-  print("Done having fun looping!")
-  time.sleep(1000)
-  conf.sendstatustoserver("/machines/report-/machines/report-68fa56d97f7c4ad18b377cc5780ee6ff-loop")
+myprint("waiting for " +  str(myinfo.WAIT_TIME) + " Seconds") 
+time.sleep(myinfo.WAIT_TIME)
+machine.reset() 

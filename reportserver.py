@@ -1,13 +1,10 @@
 #!/usr/bin/python
 
-#import time
-#import math
-#import sys
-#import os
 import socket
 
 from nodeinfo import nodeinfo
 from readreg import readreg
+from myprint import myprint
 
 #
 # This report information to the server
@@ -34,6 +31,18 @@ class reportserver:
       if (status != 404):
          return True
     except Exception as e:
-      print('reportserver.report() Exception: ' + str(e))
+      myprint('reportserver.report() Exception: ' + str(e))
+      return True
+    return False 
+
+  def reportip(self, nodeinfo, wifi):
+    try:
+      # report ip
+      val = wifi.getip()
+      status = wifi.sendstatustoserver('/machines/reportip-' + nodeinfo.machine_id + '-' + val)
+      if (status != 404):
+         return True
+    except Exception as e:
+      myprint('reportserver.report() Exception: ' + str(e))
       return True
     return False 

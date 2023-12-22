@@ -4,6 +4,7 @@ import time
 import math
 import sys
 import os
+from myprint import myprint
 
 #
 # This class read the info the server has for us
@@ -33,7 +34,7 @@ class nodeinfo:
       self.machine_id = text_file.readline().rstrip()
       text_file.close()
     except Exception as e:
-      print('nodeinfo.__init__ Exception: ' + str(e))
+      myprint('nodeinfo.__init__ Exception: ' + str(e))
 
     self.server="jfclere.myddns.me"
     try:
@@ -41,7 +42,7 @@ class nodeinfo:
       txt = text_file.readline()
       text_file.close()
     except Exception as e:
-      print('nodeinfo.__init__ Exception: ' + str(e))
+      myprint('nodeinfo.__init__ Exception: ' + str(e))
       return
     x = txt.split(" ")
     if x[0] == "machine":
@@ -55,29 +56,29 @@ class nodeinfo:
 
   # get our configuration from server
   def read(self, wifi):
-    print('nodeinfo.read')
+    myprint('nodeinfo.read')
     try:
       s = wifi.getfromserver('/machines/' + self.machine_id)
       resp = s.read(512)
       string = str(resp, "utf-8")
-      print("resp: " + string)
+      myprint("resp: " + string)
       headers = string.split("\r\n")
       i = 0
       l = 0
       status = 0
       indata = False
       for header in headers:
-        print("header: *" + header + "*")
+        myprint("header: *" + header + "*")
         if "HTTP/" in header:
           # Status to read.
           cl = header.split(" ")
-          print(cl[1])
+          myprint(cl[1])
           status = int(cl[1])
           continue
         if "Content-Length:" in header:
           # Length to read.
           cl = header.split(": ")
-          print(cl[1])
+          myprint(cl[1])
           l = int(cl[1])
           continue
         if l>0 and not indata:
@@ -89,9 +90,9 @@ class nodeinfo:
           if status != 200:
             continue # ignore response
           # Read the information
-          print("nodeinfo.read received: " + header)
-          print("nodeinfo.read received: " + str(len(header)))
-          print("nodeinfo.read received: " + str(l))
+          myprint("nodeinfo.read received: " + header)
+          myprint("nodeinfo.read received: " + str(len(header)))
+          myprint("nodeinfo.read received: " + str(l))
           if len(header) == l:
             data = header.split("\n")
             for info in data:
@@ -119,7 +120,7 @@ class nodeinfo:
       r.close()
       return True
     except Exception as e:
-      print('nodeinfo.read Exception: ' + str(e))
+      myprint('nodeinfo.read Exception: ' + str(e))
       return True
 
   # save configuration receive from server
@@ -140,7 +141,7 @@ class nodeinfo:
       f.write("\n")
       f.close()
     except Exception as e:
-      print('nodeinfo.saveconf Exception: ' + str(e))
+      myprint('nodeinfo.saveconf Exception: ' + str(e))
       return True
     return False
 
@@ -157,24 +158,24 @@ class nodeinfo:
         i = i + 1
       f.close()
     except Exception as e:
-      print('nodeinfo.readsavedversion Exception: ' + str(e))
+      myprint('nodeinfo.readsavedversion Exception: ' + str(e))
       return version
     return version
 
 if __name__=='__main__':
 
   info = nodeinfo()
-  print('server: ' + info.server)
-  print('machine_id: ' + info.machine_id)
+  myprint('server: ' + info.server)
+  myprint('machine_id: ' + info.machine_id)
   if info.read():
-    print("Failed")
+    myprint("Failed")
   else:
-    print(info.REMOTE_DIR)
-    print(info.WAIT_TIME)
-    print(info.BAT_LOW)
-    print(info.GIT_VER)
-    print(info.BATCHARGED)
-    print(info.TIME_ACTIVE)
+    myprint(info.REMOTE_DIR)
+    myprint(info.WAIT_TIME)
+    myprint(info.BAT_LOW)
+    myprint(info.GIT_VER)
+    myprint(info.BATCHARGED)
+    myprint(info.TIME_ACTIVE)
     info.save_conf()
-    print("saved version: " + info.read_saved_version())
-    print("Success")
+    myprint("saved version: " + info.read_saved_version())
+    myprint("Success")

@@ -4,6 +4,7 @@ import socket
 import ssl
 import base64
 import ntptime
+from myprint import myprint
 
 # Read configuration.
 class Picow():
@@ -58,7 +59,7 @@ class Picow():
   password = None
   for net in nets:
     ssid = net[0].decode('ascii')
-    print("connectwifi trying: " + ssid)
+    myprint("connectwifi trying: " + ssid)
     password = self.readpassconf(ssid)
     if password:
       break
@@ -85,10 +86,10 @@ class Picow():
 
   # check address resolver
   ## ai = socket.getaddrinfo("jfclere.myddns.me", 443)
-  # print("Address infos:", ai)
+  # myprint("Address infos:", ai)
   ## addr = ai[0][-1]
-  ## print("Address infos:", ai)
-  ## print("Address :", addr)
+  ## myprint("Address infos:", ai)
+  ## myprint("Address :", addr)
 
   ## self.sendstatustoserver("/machines/report-/machines/report-68fa56d97f7c4ad18b377cc5780ee6ff-titi")
 
@@ -98,7 +99,7 @@ class Picow():
    if self.wlan.status() != 3:
      raise RuntimeError('network not connected')
    else:
-     print('connected')
+     myprint('connected')
      status = self.wlan.ifconfig()
      return status[0] 
 
@@ -116,42 +117,42 @@ class Picow():
  def sendserver(self, mess):
 
   ai = socket.getaddrinfo(self.hostname, self.port)
-  # print("Address infos:", ai)
+  # myprint("Address infos:", ai)
   addr = ai[0][-1]
 
   # Create a socket and make a HTTP request
   s = socket.socket()
-  # print("Connect address:", addr)
+  # myprint("Connect address:", addr)
   s.connect(addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
-  # print(s)
+  # myprint(s)
 
   # write it
   s.write(b"PUT /webdav/rp2040/temp.txt HTTP/1.1\r\n")
   s.write(b"Host: jfclere.myddns.me\r\n")
   s.write(b"User-Agent: picow/0.0.0\r\n")
   autho=b"Authorization: Basic " + base64.b64encode(bytes(self.userpassword, 'utf-8'))
-  # print(autho)
+  # myprint(autho)
   s.write(bytes(autho, 'utf-8'))
   s.write(b"\r\n")
   contentlength = "Content-Length: " + str(len(mess))
-  # print(contentlength)
+  # myprint(contentlength)
   s.write(bytes(contentlength, 'utf-8'))
   s.write(b"\r\n")
   s.write(b"Expect: 100-continue\r\n")
   s.write(b"\r\n")
 
   # Print the response (b'HTTP/1.1 100 Continue\r\n\r\n')
-  # print(s.read(25))
+  # myprint(s.read(25))
 
   # Write the content of the temp.txt file
   s.write(mess)
 
   resp = s.read(512)
 
-  # print(resp)
+  # myprint(resp)
 
   # done close the socket
   s.close()
@@ -161,20 +162,20 @@ class Picow():
  # connect and receive a file from server
  def getfromserver(self, name):
 
-  print("getfromserver: " + name)
+  myprint("getfromserver: " + name)
 
   ai = socket.getaddrinfo(self.hostname, self.port)
-  # print("Address infos:", ai)
+  # myprint("Address infos:", ai)
   addr = ai[0][-1]
 
   # Create a socket and make a HTTP request
   s = socket.socket()
-  # print("Connect address:", addr)
+  # myprint("Connect address:", addr)
   s.connect(addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
-  # print(s)
+  # myprint(s)
 
   # write request
   s.write(b"GET /")
@@ -200,7 +201,7 @@ class Picow():
     if "Content-Length:" in header:
       # Length to read.
       cl = header.split(": ")
-      print(cl[1])
+      myprint(cl[1])
       l = int(cl[1])
       continue
     if l>0 and not indata:
@@ -210,7 +211,7 @@ class Picow():
         continue
     if indata:
       # Store the line in a file
-      print("data: " + header)
+      myprint("data: " + header)
       f.write(header)
       size = size + len(header)
       if size == l:
@@ -226,33 +227,33 @@ class Picow():
  # connect and send a get (STATUS) to server
  def sendstatustoserver(self, name):
 
-  print("sendstatustoserver: " + self.hostname + ":" + str(self.port) + " " + name);
+  myprint("sendstatustoserver: " + self.hostname + ":" + str(self.port) + " " + name);
   
   status = self.wlan.ifconfig()
-  # print("status: " + status[0])
+  # myprint("status: " + status[0])
   # status[3] = '8.8.8.8'
   #if status[2] == status[3]:
-  #  print("status: " + status[2])
-  #  print("status: " + status[3])
+  #  myprint("status: " + status[2])
+  #  myprint("status: " + status[3])
   #  self.wlan.ifconfig((status[0], status[1], status[2], '8.8.8.8'))
-  # print("status: " + str(self.wlan.status()))
-  # print("status: " + str(self.wlan.isconnected()))
+  # myprint("status: " + str(self.wlan.status()))
+  # myprint("status: " + str(self.wlan.isconnected()))
   #status = self.wlan.ifconfig()
-  # print("status: (3)" + status[3])
+  # myprint("status: (3)" + status[3])
   ai = socket.getaddrinfo('jfclere.myddns.me', self.port)
-  # print("Address infos:", ai)
+  # myprint("Address infos:", ai)
   addr = ai[0][-1]
 
   # Create a socket and make a HTTP request
   ## s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s = socket.socket()
   s.connect(addr)
-  # print(s)
-  # print("Connect address:", addr)
+  # myprint(s)
+  # myprint("Connect address:", addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
-  # print(s)
+  # myprint(s)
 
   # write request
   s.write(b"GET ")
@@ -262,16 +263,16 @@ class Picow():
   s.write(b"User-Agent: picow/0.0.0\r\n")
   s.write(b"\r\n")
 
-  print("waiting response...")
+  myprint("waiting response...")
   resp = s.read(512)
   string = str(resp, "utf-8")
   headers = string.split("\r\n")
   for header in headers:
-    print("header: " + header)
+    myprint("header: " + header)
     if "HTTP/" in header:
       # Length to read.
       cl = header.split(" ")
-      print(cl[1])
+      myprint(cl[1])
       l = int(cl[1])
       s.close()
       return l
