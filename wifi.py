@@ -114,7 +114,11 @@ class Picow():
    self.wlan.deinit()
 
  # connect and send message to the server
- def sendserver(self, mess):
+ # mess the mess
+ # name the URL
+ def sendserver(self, mess, name):
+
+  myprint("sendserver: " + name)
 
   ai = socket.getaddrinfo(self.hostname, self.port)
   # myprint("Address infos:", ai)
@@ -130,7 +134,7 @@ class Picow():
   # myprint(s)
 
   # write it
-  s.write(b"PUT /webdav/rp2040/temp.txt HTTP/1.1\r\n")
+  s.write(b"PUT " + name + " HTTP/1.1\r\n")
   s.write(b"Host: jfclere.myddns.me\r\n")
   s.write(b"User-Agent: picow/0.0.0\r\n")
   autho=b"Authorization: Basic " + base64.b64encode(bytes(self.userpassword, 'utf-8'))
