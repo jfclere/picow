@@ -4,7 +4,7 @@ import machine
 import sys
 from machine import Pin
 import bme280
-import adc
+import myadc
 import os
 
 import wifi
@@ -33,6 +33,7 @@ except:
 pin_red = Pin(red, Pin.OUT, 0)
 pin_green = Pin(green, Pin.OUT, 0)
 pin_blue = Pin(blue, Pin.OUT, 0)
+pin_adc = myadc.myadc()
 
 pin_usb = Pin('WL_GPIO2', Pin.IN)
 usb = pin_usb.value()
@@ -63,7 +64,7 @@ if not econnect:
     mess = "empty message"
     try:
         mess = bme280.readtemp()
-        val = adc.readval()
+        val = pin_adc.readval()
         mess = mess + "\nBat Val  : " + str(round(val, 2)) + "V"
     except Exception as e:
         myprint("exception while building message")

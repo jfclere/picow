@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import time
+import binascii
+import machine
 import math
 import sys
 import os
@@ -28,7 +30,7 @@ class nodeinfo:
   # read the machine_id (/etc/machine-id)
   # read server info ($HOME/.netrc)
   def __init__(self):
-    self.machine_id="a470a4070ed946d2ad6b98a9cf130f7b"
+    self.machine_id=str(binascii.hexlify(machine.unique_id()),"utf-8")
     try:
       text_file = open("machine-id");
       self.machine_id = text_file.readline().rstrip()
