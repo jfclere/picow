@@ -1,6 +1,7 @@
 import time
 import network
 import socket
+import select
 import ssl
 import base64
 import ntptime
@@ -113,6 +114,18 @@ class Picow():
    # cause problems with deepsleep
    self.wlan.deinit()
 
+# wait for data or timeout
+ def readwait(self, s, mytime):
+  poller = select.poll()
+  poller.register(s, select.POLLIN)
+  res = poller.poll(mytime)  # time in milliseconds
+  if not res:
+    #timeout
+    myprint("timeout!")
+    s.close()
+    return False
+  return True
+
  # connect and send message to the server
  # mess the mess
  # name the URL
@@ -154,6 +167,9 @@ class Picow():
   # Write the content of the temp.txt file
   s.write(mess)
 
+  if not self.readwait(s, 50000):
+    raise Exception("getfilefromserver: timeout")
+
   resp = s.read(512)
 
   # myprint(resp)
@@ -194,6 +210,9 @@ class Picow():
  def getfilefromserver(self, name):
   s = self.getfromserver("/webdav/" + name)
 
+  if not self.readwait(s, 50000):
+    raise Exception("getfilefromserver: timeout")
+
   resp = s.read(512)
   string = str(resp, "utf-8")
   headers = string.split("\r\n")
@@ -221,6 +240,9 @@ class Picow():
       if size == l:
         break # Done!
   while size < l:
+    if not self.readwait(s, 50000):
+      f.close()
+      raise Exception("getfilefromserver: timeout")
     resp = s.read(512)
     f.write(resp)
     size = size + len(resp)
@@ -268,6 +290,8 @@ class Picow():
   s.write(b"\r\n")
 
   myprint("waiting response...")
+  if not self.readwait(s, 50000):
+    return 0
   resp = s.read(512)
   string = str(resp, "utf-8")
   headers = string.split("\r\n")

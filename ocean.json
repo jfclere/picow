@@ -1,0 +1,13 @@
+{
+  "urls": [
+    ["wifi.py", "github:jfclere/picow/wifi.py"],
+    ["main.py", "github:jfclere/picow/ocean.py"],
+    ["writereg.py", "github:jfclere/picow/writereg.py"],
+    ["readreg.py", "github:jfclere/picow/readreg.py"],
+    ["nodeinfo.py", "github:jfclere/picow/nodeinfo.py"],
+    ["reportserver.py", "github:jfclere/picow/reportserver.py"],
+    ["base64.py", "github:jfclere/picow/base64.py"],
+    ["myprint.py", "github:jfclere/picow/myprint.py"]
+  ],
+  "version": "0.0.0"
+}
