@@ -7,7 +7,8 @@
     ["nodeinfo.py", "github:jfclere/picow/nodeinfo.py"],
     ["reportserver.py", "github:jfclere/picow/reportserver.py"],
     ["base64.py", "github:jfclere/picow/base64.py"],
-    ["myprint.py", "github:jfclere/picow/myprint.py"]
+    ["myprint.py", "github:jfclere/picow/myprint.py"],
+    ["checksum.py", "github:jfclere/picow/checksum.py"]
   ],
   "version": "0.0.0"
 }

@@ -5,6 +5,9 @@ import os
 import time
 import socket
 import sys
+import mip
+import binascii
+
 import wifi
 from myprint import cantprint, canprint, myprint
 from machine import Pin
@@ -12,6 +15,7 @@ from nodeinfo import nodeinfo
 from readreg import readreg
 from writereg import writereg
 from reportserver import reportserver
+from checksum import check, ischeck, copyfiles
 
 OCEANGPIO=19 ## 23 Controls the on-board SMPS Power Save pin!!!
 REDLED = 22
@@ -59,6 +63,11 @@ pin_usb = Pin('WL_GPIO2', Pin.IN)
 usb = pin_usb.value()
 if usb == 1:
     print("USB connected")
+    try:
+        print(binascii.hexlify(check("/lib")))
+    except Exception as e:
+        print("exception in conf.connectwifi()!")
+        myprint(str(e))
     canprint()
 else:
     cantprint()
@@ -165,19 +174,35 @@ if reg:
   pin_red.on()
 
 # update software
-# if net:
-#   try:
-#     ver = myinfo.readsavedversion()
-#     if ver != myinfo.GIT_VER:
-#       cmd = "/home/pi/pisolar/gitver.sh " + myinfo.GIT_VER
-#       if os.system(cmd):
-#         myprint(cmd + " Failed")
-#       else:
-#         myinfo.saveconf()
-#   except: 
-#     myprint("software update failed")
-# 
+update = False
+if net:
+  try:
+    ver = myinfo.readsavedversion()
+    if ver == "":
+      update = True
+    if ver != myinfo.GIT_VER:
+      # install in /lib
+      mip.install("github:jfclere/picow/ocean.json")
+      if checkok("/lib", myinfo.GIT_VER):
+        update = True
+      else:
+         myprint("software update check not OK!")
+  except Exception as e:
+    myprint("software update failed")
+    myprint(str(e))
 
+if update:
+  myprint("copy files")
+  try:
+    copyfiles("/lib")
+  except Exception as e:
+    myprint("software update failed")
+    myprint(str(e))
+    update = False    
+if update:
+  myprint("saving version")
+  myinfo.saveconf()
+  
 # stop and wait
 if reg:
   try:
