@@ -1,14 +1,14 @@
 {
   "urls": [
-    ["wifi.py", "github:jfclere/picow/wifi.py"],
-    ["main.py", "github:jfclere/picow/ocean.py"],
-    ["writereg.py", "github:jfclere/picow/writereg.py"],
-    ["readreg.py", "github:jfclere/picow/readreg.py"],
-    ["nodeinfo.py", "github:jfclere/picow/nodeinfo.py"],
-    ["reportserver.py", "github:jfclere/picow/reportserver.py"],
     ["base64.py", "github:jfclere/picow/base64.py"],
+    ["checksum.py", "github:jfclere/picow/checksum.py"],
+    ["main.py", "github:jfclere/picow/ocean.py"],
     ["myprint.py", "github:jfclere/picow/myprint.py"],
-    ["checksum.py", "github:jfclere/picow/checksum.py"]
+    ["nodeinfo.py", "github:jfclere/picow/nodeinfo.py"],
+    ["readreg.py", "github:jfclere/picow/readreg.py"],
+    ["reportserver.py", "github:jfclere/picow/reportserver.py"],
+    ["wifi.py", "github:jfclere/picow/wifi.py"],
+    ["writereg.py", "github:jfclere/picow/writereg.py"]
   ],
   "version": "0.0.0"
 }
