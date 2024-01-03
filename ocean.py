@@ -213,6 +213,6 @@ if reg:
     reg = False 
 
 # wait until we are stopped or not.
-myprint("Waiting for " +  str(myinfo.WAIT_TIME) + " Seconds!!!") 
+myprint("Waiting for " +  str(myinfo.WAIT_TIME) + " Seconds") 
 time.sleep(myinfo.WAIT_TIME)
 machine.reset() 
