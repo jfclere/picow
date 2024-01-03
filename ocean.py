@@ -183,7 +183,7 @@ if net:
     if ver != myinfo.GIT_VER:
       # install in /lib
       mip.install("github:jfclere/picow/ocean.json")
-      if checkok("/lib", myinfo.GIT_VER):
+      if ischeck("/lib", myinfo.GIT_VER):
         update = True
       else:
          myprint("software update check not OK!")
