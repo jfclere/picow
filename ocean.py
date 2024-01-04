@@ -106,6 +106,10 @@ if myinfo.read(conf):
   myinfo.TIME_ACTIVE = 1
   myinfo.WAIT_TIME = 3405
   myinfo.MAINT_MODE = False
+  try:
+    myinfo.readsavedinfo()
+  except Exception as e:
+    myprint('myinfo.readsaveinfo failed: Exception: ' + str(e))
 else:
   pin_green.on()
 

@@ -61,7 +61,13 @@ class nodeinfo:
     myprint('nodeinfo.read')
     try:
       s = wifi.getfromserver('/machines/' + self.machine_id)
+      if not wifi.readwait(s, 50000):
+        myprint('nodeinfo.read Timeout!')
+        return True
       resp = s.read(512)
+      if len(resp) < 20:
+        myprint('nodeinfo.read too small!')
+        return True
       string = str(resp, "utf-8")
       myprint("resp: " + string)
       headers = string.split("\r\n")
@@ -147,7 +153,28 @@ class nodeinfo:
       return True
     return False
 
-  # read save version id
+  # read saved info
+  def readsavedinfo(self):
+    f = open("savedconfig.txt", "r")
+    i = 0
+    for line in f:
+      info=line.rstrip()
+      if i == 0:
+        self.REMOTE_DIR=info
+      if i == 1:
+        self.WAIT_TIME=int(info)
+      if i == 2:
+        self.BAT_LOW=int(info)
+      if i == 3:
+        self.GIT_VER=info
+      if i == 4:
+        self.BATCHARGED=int(info)
+      if i == 5:
+        self.TIME_ACTIVE=int(info)
+      i = i + 1
+    f.close()
+
+  # read saved version id
   def readsavedversion(self):
     version=""
     try:
