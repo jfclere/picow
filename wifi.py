@@ -81,6 +81,10 @@ class Picow():
   if self.wlan.status() != 3:
     raise RuntimeError('network connection failed')
 
+  # print address
+  myprint(self.getip())
+  myprint(self.wlan.ifconfig())
+
   # Set time and date (for TLS?)
   ntptime.host = "de.pool.ntp.org"
   ntptime.settime()
@@ -141,6 +145,7 @@ class Picow():
   s = socket.socket()
   # myprint("Connect address:", addr)
   s.connect(addr)
+  s.settimeout(120.0)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
@@ -192,6 +197,7 @@ class Picow():
   s = socket.socket()
   # myprint("Connect address:", addr)
   s.connect(addr)
+  s.settimeout(120.0)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
@@ -274,6 +280,7 @@ class Picow():
   ## s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s = socket.socket()
   s.connect(addr)
+  s.settimeout(120.0)
   # myprint(s)
   # myprint("Connect address:", addr)
   # cadata=CA certificate chain (in DER format)
