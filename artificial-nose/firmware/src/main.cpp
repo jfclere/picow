@@ -7,6 +7,7 @@
 
 #include <Multichannel_Gas_GMXXX.h>
 #include <Wire.h>
+#include <queue>
 
 /**
 * @brief      Printf function uses vsnprintf and output using Arduino Serial
