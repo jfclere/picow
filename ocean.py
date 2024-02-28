@@ -53,11 +53,15 @@ pin_red = Pin(REDLED, Pin.OUT, 0)
 pin_green = Pin(GREENLED, Pin.OUT, 0)
 pin_blue = Pin(BLUELED, Pin.OUT, 0)
 pin_ocean = Pin(OCEANGPIO, Pin.OUT, 0)
+led = Pin('LED', Pin.OUT)
 
 pin_red.off()
 pin_green.off()
 pin_blue.off()
 pin_ocean.off()
+
+# use it to show we are powered
+led.on()
 
 pin_usb = Pin('WL_GPIO2', Pin.IN)
 usb = pin_usb.value()
