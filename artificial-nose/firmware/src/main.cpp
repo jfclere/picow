@@ -58,25 +58,14 @@ char title_text[50] = "";
 enum MODE
 {
   TRAINING,
-  INFERENCE
+  INFERENCE,
+  WIFI,
+  STOP
 };
 enum MODE mode = INFERENCE;
 
-enum SCREEN_MODE
-{
-  SENSORS,
-  GRAPH,
-  INFERENCE_RESULTS
-};
-enum SCREEN_MODE screen_mode = GRAPH;
-
 int latest_inference_idx = -1;
 float latest_inference_confidence_level = -1.;
-
-#define MAX_CHART_SIZE 50
-typedef std::queue<double>  doubles;
-// CircularBuffer<double,MAX_CHART_SIZE> doubles;
-std::vector<doubles> chart_series = std::vector<doubles>(NB_SENSORS, doubles());
 
 // Allocate a buffer for the values we'll read from the gas sensor
 CircularBuffer<float, EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE> buffer;
@@ -122,8 +111,19 @@ int fan = 0;
 void loop()
 {
 
+  if (Serial.available()) {
+    switch (Serial.read()) {
+      case 't': mode = TRAINING; break;
+      case 'i': mode = INFERENCE; break;
+      case 'w': mode = WIFI; break;
+      case 's': mode = STOP; break;
+    }
+  }
+
   if (mode == TRAINING) {
     strcpy(title_text, "Training mode");
+  } else {
+    strcpy(title_text, "Inference mode");
   }
 
   uint64_t new_sampling_tick = -1;
@@ -138,10 +138,6 @@ void loop()
     }
     sensors[i].last_val = sensorVal;
 
-    if (chart_series[i].size() == MAX_CHART_SIZE) {
-      chart_series[i].pop();
-    }
-    chart_series[i].push(sensorVal);
     if (new_sampling_tick != -1) {
       buffer.unshift(sensorVal);
     }
@@ -156,11 +152,13 @@ void loop()
 
   if (mode == TRAINING) {
     ei_printf("%d,%d,%d,%d\r\n", sensors[0].last_val, sensors[1].last_val, sensors[2].last_val, sensors[3].last_val);
-  } else { // INFERENCE
+  } else if (mode == INFERENCE) { // INFERENCE
 
     if (!buffer.isFull()) {
       ei_printf("Need more samples to start infering.\r\n");
     } else {
+      int lineNumber = 60;
+      char lineBuffer[60] = "";
       // Turn the raw buffer into a signal which we can then classify
       float buffer2[EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE];
 
@@ -195,9 +193,6 @@ void loop()
                 result.timing.classification,
                 result.timing.anomaly);
 
-      int lineNumber = 60;
-      char lineBuffer[60] = "";
-
       for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
         if (result.classification[ix].value >=
             result.classification[best_prediction].value) {
@@ -210,28 +205,6 @@ void loop()
                 result.classification[ix].value);
         ei_printf(lineBuffer);
       }
-
-      /* send something to the server */
-      if (!sendtojfc()) {
-        Serial.print("Something is fishy...");
-        // WiFi.end(); not in arduino-esp32 ...
-        connecttowifi();
-      }
-/*
-      if (screen_mode == INFERENCE_RESULTS) {
-        if (best_prediction != latest_inference_idx) {
-          // clear icon background
-          spr.pushSprite(0, 0);
-        }
-        #if USE_ICONS
-        spr.pushImage(30, 35, 130, 130, (uint16_t*)ICONS_MAP[best_prediction]);
-        #endif
-        spr.setFreeFont(&Roboto_Bold_28);
-        spr.setTextDatum(CC_DATUM);
-        spr.setTextColor(TEXT_COLOR);
-        spr.drawString(title_text, 160, 200, 1);
-      }
- */
 
 #if EI_CLASSIFIER_HAS_ANOMALY == 1
       sprintf(lineBuffer, "    anomaly score: %.3f\r\n", result.anomaly);
@@ -258,6 +231,15 @@ void loop()
         result.classification[best_prediction].value;
       }
     }
+  } else if (mode == STOP) { // Do nothing... wait a little
+    delay(1000);
+  } else { // WIFI
+      /* send something to the server */
+      if (!sendtojfc()) {
+        Serial.print("Something is fishy...");
+        // WiFi.end(); not in arduino-esp32 ...
+        connecttowifi();
+      }
   }
 
   // spr.pushSprite(0, 0, TFT_MAGENTA);
