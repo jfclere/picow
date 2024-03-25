@@ -72,7 +72,7 @@ CircularBuffer<float, EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE> buffer;
 
 uint64_t next_sampling_tick = micros();
 
-#define INITIAL_FAN_STATE LOW
+#define INITIAL_FAN_STATE HIGH
 static int fan_state = INITIAL_FAN_STATE;
 
 static bool debug_nn = false; // Set this to true to see e.g. features generated
@@ -91,11 +91,8 @@ void setup()
      // wait for serial port to connect. Needed for native USB port only
   }
 
-  pinMode(D0, OUTPUT);
-  digitalWrite(D0, fan_state);
-
-  pinMode(D0, OUTPUT);
-  digitalWrite(D0, INITIAL_FAN_STATE);
+  pinMode(D2, OUTPUT);
+  digitalWrite(D2, HIGH);
 
   connecttowifi();
   IPAddress ip  = WiFi.localIP();
@@ -113,10 +110,22 @@ void loop()
 
   if (Serial.available()) {
     switch (Serial.read()) {
-      case 't': mode = TRAINING; break;
-      case 'i': mode = INFERENCE; break;
-      case 'w': mode = WIFI; break;
-      case 's': mode = STOP; break;
+      case 't':
+        digitalWrite(D2, HIGH);
+        mode = TRAINING;
+        break;
+      case 'i':
+        digitalWrite(D2, HIGH);
+        mode = INFERENCE;
+        break;
+      case 'w':
+         digitalWrite(D2, LOW);
+         mode = WIFI;
+         break;
+      case 's':
+         mode = STOP;
+         digitalWrite(D2, LOW);
+         break;
     }
   }
 
@@ -231,7 +240,10 @@ void loop()
         result.classification[best_prediction].value;
       }
     }
-  } else if (mode == STOP) { // Do nothing... wait a little
+  } else if (mode == STOP) { // clean buffer and wait a little
+    while (!buffer.isEmpty()) {
+      buffer.pop();
+    }
     delay(1000);
   } else { // WIFI
       /* send something to the server */
