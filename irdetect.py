@@ -1,6 +1,7 @@
 # import picosleep
 import time
 import binascii
+import machine
 from machine import Pin
 
 import wifi
