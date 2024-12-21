@@ -6,11 +6,11 @@ copy the picow.conf and wifi.py to the pico
 ```bash
 ampy --port /dev/ttyACM0 put wifi.py
 ampy --port /dev/ttyACM0 put picow.conf
+ampy --port /dev/ttyACM0 put wpa_supplicant.conf
+ampy --port /dev/ttyACM0 put your_main.py main.py
 ```
-the conf file contains:
+The picow.conf file contains:
 ```
-your_ssid
-your_password
 hostname
 port
 user:password
