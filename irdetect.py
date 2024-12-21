@@ -8,6 +8,21 @@ import wifi
 from nodeinfo import nodeinfo
 from myprint import myprint, canprint, cantprint
 
+count = 0
+def callback():
+   global count
+   myprint("Count: " + str(count))
+   count = count + 1
+
+def isalarm():
+   global count
+   if count >= 2:
+     count = 0
+     return True
+   else:
+     count = 0
+     return False
+
 led = Pin('LED', Pin.OUT)
 pir = Pin(18, Pin.IN)
 ledr = Pin(19, Pin.OUT)
@@ -38,9 +53,12 @@ except Exception as e:
 myinfo = nodeinfo()
 
 # wait trying to detect a move...
+timecount = 0
 while True:
     myalarm = False
     if pir.value():
+        callback()
+    if timecount == 10 and isalarm():
         myprint('Motion Detected')
         myalarm = True
     else:
@@ -65,6 +83,11 @@ while True:
             # We can't report or something the like...
             machine.reset()
     ledr.off()
+    if timecount == 10:
+        timecount = 0
+    else:
+        timecount = timecount + 1
+    
     time.sleep(1)
     led.toggle()
 
