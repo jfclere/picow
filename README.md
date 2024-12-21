@@ -5,6 +5,9 @@ pico pi w stuff...
 copy the picow.conf and wifi.py to the pico
 ```bash
 ampy --port /dev/ttyACM0 put wifi.py
+ampy --port /dev/ttyACM0 put base64.py
+ampy --port /dev/ttyACM0 put myprint.py
+ampy --port /dev/ttyACM0 put nodeinfo.py
 ampy --port /dev/ttyACM0 put picow.conf
 ampy --port /dev/ttyACM0 put wpa_supplicant.conf
 ampy --port /dev/ttyACM0 put your_main.py main.py
