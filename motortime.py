@@ -4,6 +4,7 @@
 BACKLASH = 25
 
 import time, motor
+from myprint import myprint
 class hourmin:
   def __init__(self): 
     self.hour = 0
@@ -30,12 +31,13 @@ class motortime:
      try:
        file = open('step.txt', 'r')
        content = file.read()
-       print(content)
+       myprint(content)
        file.close()
        return int(content)
      except Exception as err:
-       print("OS error:", err)
-       print("restore failed resetting to 00:00")
+       myprint("OS error:")
+       myprint(err)
+       myprint("restore failed resetting to 00:00")
        return -1
 
    def hourminu(self):
@@ -79,28 +81,24 @@ class motortime:
      if mysteps == 0:
        return
      if mysteps > 0:
-       print(mysteps)
-       print(val.hour, val.minu)
        motor.step_forward8(0.005, mysteps)
      else:
-       print(mysteps)
-       print(val.hour, val.minu)
        motor.step_backward8(0.005, -mysteps)
      self.step = self.step + mysteps
      if self.step == motor.STEPS_PER_REVOLUTION * 12:
        self.step = 0
      if self.step > motor.STEPS_PER_REVOLUTION * 12:
-        print(self.step)
+        myprint(self.step)
      self.store(self.step)
 
 # main for picow
 
-print( "__main__")
+#myprint( "__main__")
 
-myout = motortime()
+#myout = motortime()
 
-while True:
-  val = myout.hourminu()
-  myout.display(val)
-  time.sleep(1)
-myout.off()
+#while True:
+#  val = myout.hourminu()
+#  myout.display(val)
+#  time.sleep(1)
+#myout.off()

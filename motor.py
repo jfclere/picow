@@ -7,6 +7,7 @@ https://newbiely.com/tutorials/raspberry-pi/raspberry-pi-28byj-48-stepper-motor-
 
 import time
 from machine import Pin
+from myprint import myprint
 
 # Define GPIO pins for ULN2003 driver
 # Red is a +5V always...
@@ -124,8 +125,8 @@ def main():
         delay = 0.005
         # delay = 1
 
-        print(se4)
-        print(STEPS_PER_REVOLUTION)
+        myprint(se4)
+        myprint(STEPS_PER_REVOLUTION)
         step_forward8(delay, 1)
         return
 
@@ -144,14 +145,14 @@ def main():
             # time.sleep(2)
 
     except KeyboardInterrupt:
-        print("\nExiting the script.")
+        myprint("\nExiting the script.")
     except Exception as e:
-        print(str(e))
+        myprint(str(e))
 
 # main for micropython tests
 #main()
 #while True:
 #    led.toggle()
-#    print("Done???")
+#    myprint("Done???")
 #    # Pause for 2 seconds
 #    time.sleep(2)

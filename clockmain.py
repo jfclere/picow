@@ -4,6 +4,8 @@ import machine
 import ntptime
 import sys
 from myprint import cantprint, canprint, myprint
+from machine import Pin
+import motortime
 
 # For localtime
 # Micropython esp8266
@@ -28,7 +30,14 @@ def cettime():
 
 # main piece...
 
-canprint()
+pin_usb = Pin('WL_GPIO2', Pin.IN)
+usb = pin_usb.value()
+if usb == 1:
+    print("USB connected")
+    canprint()
+else:
+    cantprint()
+
 conf = wifi.Picow()
 
 conf.connectwifi()
@@ -41,13 +50,28 @@ ntptime.settime()
 myprint("Synchronized")
 myprint(cettime())
 
+myout = motortime.motortime()
+
+synchronized = True
+
 while True:
-    t = cettime()
-    if t[3] % 10 == 0:
-      # get host time every 10 minutes.
-      try:
-        ntptime.settime()
-      except Exception as err:
-        myprint(err)
-      myprint("Synchronized")
+    ct = cettime()
+    t = motortime.hourmin()
+    t.hour = ct[3]
+    t.minu = ct[4]
+    if t.hour >= 12:
+        t.hour = t.hour % 12
+    myout.display(t)
+    if ct[4] % 10 == 0 and not synchronized:
+        myprint(ct[4])
+        myprint(ct[4] % 10)
+        # get host time every 10 minutes.
+        try:
+            ntptime.settime()
+        except Exception as err:
+            myprint(err)
+        myprint("Synchronized")
+        synchronized = True
+    if ct[4] % 10 != 0:
+        synchronized = False
     time.sleep(1)
