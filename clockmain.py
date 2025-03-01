@@ -46,9 +46,12 @@ myprint("Connected")
 
 myprint(cettime())
 ntptime.host = 'ch.pool.ntp.org'
-ntptime.settime()
-myprint("Synchronized")
-myprint(cettime())
+try:
+    ntptime.settime()
+    myprint("Synchronized")
+    myprint(cettime())
+except Exception as err:
+    myprint(err)
 
 myout = motortime.motortime()
 
