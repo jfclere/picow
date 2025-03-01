@@ -63,14 +63,12 @@ while True:
         t.hour = t.hour % 12
     myout.display(t)
     if ct[4] % 10 == 0 and not synchronized:
-        myprint(ct[4])
-        myprint(ct[4] % 10)
         # get host time every 10 minutes.
         try:
             ntptime.settime()
         except Exception as err:
             myprint(err)
-        myprint("Synchronized")
+        myprint("Synchronized at " + str(t.hour) + ":" + str(t.minu))
         synchronized = True
     if ct[4] % 10 != 0:
         synchronized = False
