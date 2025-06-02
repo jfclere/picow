@@ -1,11 +1,11 @@
 import machine
 
-# Read bat value using adc0
+# Read bat value using adc
 # Not needed AGND (33)
 # Not needed ADC_VREF (35)
-# Use ADC0 (31) and the 3.3V as reference.
+# Use for example ADC0 (31) and the 3.3V as reference.
 # for 12V bat: 100k + 10k resistors.
-class myadc():
+class myadc:
  def __init__(self, num):
     self.analog_value = machine.ADC(num)
 
