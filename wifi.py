@@ -10,13 +10,21 @@ from myprint import myprint
 # Read configuration.
 class Picow():
  def __init__(self):
-   file = open('picow.conf', 'r')
-   self.hostname = file.readline().strip()
-   self.port = int(file.readline().strip())
-   self.userpassword = file.readline().strip()
-   file.close()
-   self.wlan = network.WLAN(network.STA_IF)
-   self.wlan.active(True)
+   try:
+     file = open('picow.conf', 'r')
+     self.hostname = file.readline().strip()
+     self.port = int(file.readline().strip())
+     self.userpassword = file.readline().strip()
+     file.close()
+   except:
+     self.hostname = "jfclere.myddns.me"
+     self.port = 443
+     self.userpassword = "admin:admin"
+
+ def setserver(self, hostname, port, userpassword):
+   self.hostname = hostname
+   self.port = port
+   self.userpassword = userpassword
 
  # read lets-encrypt-r3.der
  def getcadata(self):
@@ -56,6 +64,8 @@ class Picow():
 
  # connect to wifi
  def connectwifi(self):
+  self.wlan = network.WLAN(network.STA_IF)
+  self.wlan.active(True)
   nets = self.wlan.scan()
   password = None
   for net in nets:

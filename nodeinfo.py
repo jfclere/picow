@@ -41,14 +41,37 @@ class nodeinfo:
     self.server="jfclere.myddns.me"
     try:
       text_file = open(".netrc")
-      txt = text_file.readline()
-      text_file.close()
     except Exception as e:
       myprint('nodeinfo.__init__ Exception: ' + str(e))
+      return
+    try:
+      txt = text_file.readline()
+    except Exception as e:
+      myprint('nodeinfo.__init__ Exception: ' + str(e))
+      text_file.close()
       return
     x = txt.split(" ")
     if x[0] == "machine":
       self.server=x[1].rstrip()
+    try:
+      txt = text_file.readline()
+    except Exception as e:
+      myprint('nodeinfo.__init__ Exception: ' + str(e))
+      text_file.close()
+      return
+    x = txt.split(" ")
+    if x[0] == "login":
+      self.login=x[1].rstrip()
+    try:
+      txt = text_file.readline()
+    except Exception as e:
+      myprint('nodeinfo.__init__ Exception: ' + str(e))
+      text_file.close()
+      return
+    x = txt.split(" ")
+    if x[0] == "password":
+      self.password=x[1].rstrip()
+    text_file.close()
 
   # cut content of response in lines
   def readcontent(self, c):

@@ -32,6 +32,8 @@ import os
 # import our stuff
 import myadc
 from myprint import cantprint, canprint, myprint
+import wifi
+from nodeinfo import nodeinfo
 
 bat_adc = myadc.myadc(1)
 hyd_adc = myadc.myadc(0)
@@ -73,6 +75,38 @@ except:
   except:
     print("Something more was wrong...")
 
+# connect to the wifi
+econnect = False
+conf = wifi.Picow()
+i = 1
+while i < 3:
+  try:
+    conf.connectwifi()
+  except Exception as err:
+    myprint("exception in conf.connectwifi()!")
+    myprint(str(err))
+    time.sleep(1)
+    i += 1
+    continue
+  break
+if i == 3:
+  econnect = True
+  myprint("No wifi!")
+
+# read where to send data
+myinfo = nodeinfo()
+if myinfo.read(conf):
+  # Use some default values
+  myprint("myinfo.read() Failed!")
+  myinfo.TIME_ACTIVE = 1
+  myinfo.WAIT_TIME = 3405
+  myinfo.MAINT_MODE = False
+  try:
+    myinfo.readsavedinfo()
+  except Exception as e:
+    myprint('myinfo.readsaveinfo failed: Exception: ' + str(e))
+conf.setserver(myinfo.server, 443, myinfo.login + ":" + myinfo.password)
+
 # next time to change the panel connection
 deadline = time.ticks_add(time.ticks_ms(), DELAYCHANGE)
 charging = True
@@ -106,6 +140,24 @@ while True:
       if not charging:
         myprint(mess)
       charging = True
+    # send mess to the server
+    url =  "/webdav/" + myinfo.REMOTE_DIR + "/value.txt"
+    try:
+      if econnect:
+        # try reconnect
+        conf.disconnectwifi()
+        conf.connectwifi()
+        econnect = False
+      if not econnect:
+        conf.sendserver(mess, url)
+        myprint("after conf.sendserver()!")
+      else:
+        myprint("No connection can't do conf.sendserver()!")
+    except:
+      econnect = True
+      myprint("exception in conf.sendserver()!")
+      conf.sendserver(mess, url)
+      myprint("after conf.sendserver()!")
   time.sleep(1)
 
 pin_pan.off()
