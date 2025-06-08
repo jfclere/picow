@@ -19,7 +19,11 @@ PINWAT = 26
 # it is on adc2
 SOLFACTOR = 11.95
 PINSOL = 28
-# delay between changes (to prevent useless switching
+
+# delay between changes (to prevent useless switching)
+# the valve is controled via IRF520
+# VIN to 12V of the battery
+# GND near it is the same as the GND near VCC and SIG
 DELAYCHANGE = 20000 # 20 seconds
 
 # import picosleep
@@ -50,7 +54,7 @@ pin_pan = Pin(PANLED, Pin.OUT, 0)
 pin_hyd = Pin(HYDLED, Pin.OUT, 0)
 
 pin_pan.off()
-pin_hyd.on()
+pin_hyd.off()
 
 # works only on picow (WL_ is wifi!)
 try:
@@ -95,6 +99,7 @@ if i == 3:
 
 # read where to send data
 myinfo = nodeinfo()
+conf.setserver(myinfo.server, 443, myinfo.login + ":" + myinfo.password)
 if myinfo.read(conf):
   # Use some default values
   myprint("myinfo.read() Failed!")
@@ -105,13 +110,12 @@ if myinfo.read(conf):
     myinfo.readsavedinfo()
   except Exception as e:
     myprint('myinfo.readsaveinfo failed: Exception: ' + str(e))
-conf.setserver(myinfo.server, 443, myinfo.login + ":" + myinfo.password)
+etag = myinfo.ETAG
 
 # next time to change the panel connection
 deadline = time.ticks_add(time.ticks_ms(), DELAYCHANGE)
 charging = True
 while True:
-  pin_hyd.toggle()
   led.toggle()
   valb = bat_adc.readval()
   # 4.7k + 47k (should be ~ 11)
@@ -148,11 +152,15 @@ while True:
         conf.disconnectwifi()
         conf.connectwifi()
         econnect = False
-      if not econnect:
-        conf.sendserver(mess, url)
-        myprint("after conf.sendserver()!")
-      else:
-        myprint("No connection can't do conf.sendserver()!")
+      conf.sendserver(mess, url)
+      if not myinfo.read(conf):
+        # check the etag for change.
+        if etag != myinfo.ETAG:
+          myprint("ETAG: " + etag + " New: " + myinfo.ETAG)
+          etag = myinfo.ETAG
+          pin_hyd.on()
+          time.sleep(myinfo.TIME_ACTIVE)
+          pin_hyd.off()
     except:
       econnect = True
       myprint("exception in conf.sendserver()!")

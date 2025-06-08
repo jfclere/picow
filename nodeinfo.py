@@ -112,6 +112,12 @@ class nodeinfo:
           myprint(cl[1])
           l = int(cl[1])
           continue
+        if "ETag:" in header:
+          # store etag
+          etag = header.split(": ")
+          myprint(etag[1])
+          self.ETAG=etag[1]
+          continue
         if l>0 and not indata:
           # We skip until empty line
           if len(header) == 0:
