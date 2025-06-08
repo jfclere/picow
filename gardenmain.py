@@ -120,15 +120,15 @@ while True:
   valb = bat_adc.readval()
   # 4.7k + 47k (should be ~ 11)
   valb = valb * BATFACTOR # my resistors are crappy!!!
-  mess = "Bat Val  : " + str(round(valb, 2)) + "V "
+  mess = "Bat : " + str(round(valb, 2)) + "\n"
    
   val = hyd_adc.readval()
-  mess = mess + "Hyd Val  : " + str(round(val, 2)) + " "
+  mess = mess + "Hyd : " + str(round(val, 2)) + "\n"
   val = sol_adc.readval()
 
   # 4.7k + 47k (should be ~ 11)
   val = val * SOLFACTOR # my resistors are crappy!!!
-  mess = mess + "Sol Val  : " + str(round(val, 2)) + "V"
+  mess = mess + "Sol : " + str(round(val, 2)) + "\n"
 
   # after the deadline: if more that BATHIGH disconnect the pannel
   if time.ticks_diff(deadline, time.ticks_ms()) < 0:
@@ -152,15 +152,16 @@ while True:
         conf.disconnectwifi()
         conf.connectwifi()
         econnect = False
-      conf.sendserver(mess, url)
       if not myinfo.read(conf):
         # check the etag for change.
         if etag != myinfo.ETAG:
           myprint("ETAG: " + etag + " New: " + myinfo.ETAG)
           etag = myinfo.ETAG
           pin_hyd.on()
+          mess = mess + "Wat : 99.99\n"
           time.sleep(myinfo.TIME_ACTIVE)
           pin_hyd.off()
+      conf.sendserver(mess, url)
     except:
       econnect = True
       myprint("exception in conf.sendserver()!")
