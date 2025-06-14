@@ -7,6 +7,7 @@
 BATFACTOR = 11.95
 PINBAT = 27
 BATHIGH = 11.60
+BATLOW = 10.0
 
 # water sensor IDUINO
 # https://cdn.manomano.com/pim-dam-img/350/48640213/dfe24ab828c121029632ef8efd87a759d3e2c3ef.pdf
@@ -26,6 +27,9 @@ PINSOL = 28
 # GND near it is the same as the GND near VCC and SIG
 DELAYCHANGE = 20000 # 20 seconds
 
+# Deepsleep time
+SLEEPTIME = 60
+
 # import picosleep
 import time
 import machine
@@ -38,6 +42,19 @@ import myadc
 from myprint import cantprint, canprint, myprint
 import wifi
 from nodeinfo import nodeinfo
+
+# a file was created to tell us to sleep.
+try:
+    f = open("sleep.txt", "r")
+    f.close()
+    os.remove("sleep.txt")
+    # stop and reset after sleeptime
+    time.sleep(1) # not os.sync() for the moment...
+    machine.deepsleep(SLEEPTIME*1000)
+except:
+    # we will sleep on the next restart
+    f = open("sleep.txt", "a")
+    f.close()
 
 bat_adc = myadc.myadc(1)
 hyd_adc = myadc.myadc(0)
@@ -62,6 +79,12 @@ try:
   usb = pin_usb.value()
   if usb == 1:
     print("USB connected")
+    try:
+        # Don't sleep in USB connected.
+        os.remove("sleep.txt")
+    except Exception as e:
+        print("exception removing sleep.txt)!")
+        print(str(e))
     canprint()
   else:
     cantprint()
@@ -73,11 +96,31 @@ except:
     SUSPENDED=const(1<<4)
     if (machine.mem32[SIE_STATUS] & (CONNECTED | SUSPENDED))==CONNECTED:
       print("USB connected")
+      try:
+          # Don't sleep in USB connected.
+          os.remove("sleep.txt")
+      except Exception as e:
+          print("exception removing sleep.txt)!")
+          print(str(e))
       canprint()
     else:
       cantprint()
   except:
     print("Something more was wrong...")
+
+# Read the battery charge and go in sleep mode if not charged.
+valb = bat_adc.readval()
+# 4.7k + 47k (should be ~ 11)
+valb = valb * BATFACTOR # my resistors are crappy!!!
+mess = "Bat : " + str(round(valb, 2))
+myprint(mess)
+if valb < BATLOW:
+  # We will deepsleep for while waiting for the battery to charge.
+  f = open("sleep.txt", "a")
+  f.close()
+  myprint("Going in deepslepp")
+  time.sleep(10) # so that we can stop for debug... if we have USB???
+  machine.reset()
 
 # connect to the wifi
 econnect = False
