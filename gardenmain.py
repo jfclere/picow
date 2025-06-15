@@ -4,9 +4,9 @@
 #  val = val *11.95 # my resistors are crappy!!!
 # the vref is 3.3 for the picow intern vref
 # it is on adc1
-BATFACTOR = 11.95
+BATFACTOR = 12.30 # measured via IN219
 PINBAT = 27
-BATHIGH = 11.60
+BATHIGH = 14.4
 BATLOW = 10.0
 
 # water sensor IDUINO
@@ -178,6 +178,7 @@ while True:
     # refresh deadline
     deadline = time.ticks_add(time.ticks_ms(), DELAYCHANGE)
     if valb > BATHIGH :
+      myprint("CHARGED: " + str(valb))
       pin_pan.on()
       if charging:
         myprint(mess)
