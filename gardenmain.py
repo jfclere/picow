@@ -209,8 +209,6 @@ while True:
     except:
       econnect = True
       myprint("exception in conf.sendserver()!")
-      conf.sendserver(mess, url)
-      myprint("after conf.sendserver()!")
   time.sleep(1)
 
 pin_pan.off()

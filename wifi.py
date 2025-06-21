@@ -154,8 +154,8 @@ class Picow():
   # Create a socket and make a HTTP request
   s = socket.socket()
   # myprint("Connect address:", addr)
-  s.connect(addr)
   s.settimeout(120.0)
+  s.connect(addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
