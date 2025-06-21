@@ -7,6 +7,8 @@ import base64
 import ntptime
 from myprint import myprint
 
+SOCKTIMEOUT = 120.0
+
 # Read configuration.
 class Picow():
  def __init__(self):
@@ -96,8 +98,16 @@ class Picow():
   myprint(self.wlan.ifconfig())
 
   # Set time and date (for TLS?)
-  ntptime.host = "de.pool.ntp.org"
-  ntptime.settime()
+  try:
+    ntptime.host = "de.pool.ntp.org"
+    ntptime.settime()
+  except:
+    try:
+      ntptime.host = "ntp.metas.ch"
+      ntptime.settime()
+    except:
+      raise RuntimeError('can\'t set time')
+
 
   # check address resolver
   ## ai = socket.getaddrinfo("jfclere.myddns.me", 443)
@@ -154,7 +164,7 @@ class Picow():
   # Create a socket and make a HTTP request
   s = socket.socket()
   # myprint("Connect address:", addr)
-  s.settimeout(120.0)
+  s.settimeout(SOCKTIMEOUT)
   s.connect(addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
@@ -206,7 +216,7 @@ class Picow():
   # Create a socket and make a HTTP request
   s = socket.socket()
   # myprint("Connect address:", addr)
-  s.settimeout(120.0)
+  s.settimeout(SOCKTIMEOUT)
   s.connect(addr)
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
@@ -289,7 +299,7 @@ class Picow():
   # Create a socket and make a HTTP request
   ## s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s = socket.socket()
-  s.settimeout(120.0)
+  s.settimeout(SOCKTIMEOUT)
   s.connect(addr)
   # myprint(s)
   # myprint("Connect address:", addr)
