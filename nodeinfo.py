@@ -26,6 +26,7 @@ class nodeinfo:
   BATCHARGED=773
   TIME_ACTIVE=2
   MAINT_MODE=False
+  ETAG=""
 
   # read the machine_id (/etc/machine-id)
   # read server info ($HOME/.netrc)
