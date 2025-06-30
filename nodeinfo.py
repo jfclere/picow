@@ -153,9 +153,7 @@ class nodeinfo:
       if (status == 404):
         # 404 means mainteance
         self.MAINT_MODE=True
-        r.close()
         return False
-      r.close()
       return True
     except Exception as e:
       myprint('nodeinfo.read Exception: ' + str(e))
