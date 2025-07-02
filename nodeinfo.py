@@ -93,30 +93,30 @@ class nodeinfo:
         myprint('nodeinfo.read too small!')
         return True
       string = str(resp, "utf-8")
-      myprint("resp: " + string)
+      # myprint("resp: " + string)
       headers = string.split("\r\n")
       i = 0
       l = 0
       status = 0
       indata = False
       for header in headers:
-        myprint("header: *" + header + "*")
+        # myprint("header: *" + header + "*")
         if "HTTP/" in header:
           # Status to read.
           cl = header.split(" ")
-          myprint(cl[1])
+          # myprint(cl[1])
           status = int(cl[1])
           continue
         if "Content-Length:" in header:
           # Length to read.
           cl = header.split(": ")
-          myprint(cl[1])
+          # myprint(cl[1])
           l = int(cl[1])
           continue
         if "ETag:" in header:
           # store etag
           etag = header.split(": ")
-          myprint(etag[1])
+          # myprint(etag[1])
           self.ETAG=etag[1]
           continue
         if l>0 and not indata:
@@ -128,9 +128,9 @@ class nodeinfo:
           if status != 200:
             continue # ignore response
           # Read the information
-          myprint("nodeinfo.read received: " + header)
-          myprint("nodeinfo.read received: " + str(len(header)))
-          myprint("nodeinfo.read received: " + str(l))
+          # myprint("nodeinfo.read received: " + header)
+          # myprint("nodeinfo.read received: " + str(len(header)))
+          # myprint("nodeinfo.read received: " + str(l))
           if len(header) == l:
             data = header.split("\n")
             for info in data:
