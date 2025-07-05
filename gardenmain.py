@@ -204,8 +204,10 @@ while True:
           myprint("ETAG: " + etag + " New: " + myinfo.ETAG)
           etag = myinfo.ETAG
           pin_hyd.on()
-          mess = mess + "Wat : 99.99\n"
-          time.sleep(myinfo.TIME_ACTIVE)
+          mess = mess + "Wat : 9.99\n"
+          for _ in range(myinfo.TIME_ACTIVE):
+            wdt.feed()
+            time.sleep(1)
           pin_hyd.off()
       wdt.feed()
       conf.sendserver(mess, url)
