@@ -32,9 +32,8 @@ SLEEPTIME = 60
 
 # import picosleep
 import time
-import machine
 import sys
-from machine import Pin
+from machine import Pin, WDT
 import os
 
 # import our stuff
@@ -155,10 +154,13 @@ if myinfo.read(conf):
     myprint('myinfo.readsaveinfo failed: Exception: ' + str(e))
 etag = myinfo.ETAG
 
+# watchdog timer 8388 is the max value
+wdt = WDT(timeout=8000)  # enable it with a timeout of 8s
 # next time to change the panel connection
 deadline = time.ticks_add(time.ticks_ms(), DELAYCHANGE)
 charging = True
 while True:
+  wdt.feed()
   led.toggle()
   valb = bat_adc.readval()
   # 4.7k + 47k (should be ~ 11)
@@ -205,6 +207,7 @@ while True:
           mess = mess + "Wat : 99.99\n"
           time.sleep(myinfo.TIME_ACTIVE)
           pin_hyd.off()
+      wdt.feed()
       conf.sendserver(mess, url)
     except:
       econnect = True
