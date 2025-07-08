@@ -165,6 +165,9 @@ while True:
   valb = bat_adc.readval()
   # 4.7k + 47k (should be ~ 11)
   valb = valb * BATFACTOR # my resistors are crappy!!!
+  if valb < BATLOW:
+    # reset will trigger the deepsleep
+    machine.reset()
   mess = "Bat : " + str(round(valb, 2)) + "\n"
    
   val = hyd_adc.readval()
