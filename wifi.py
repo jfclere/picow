@@ -154,18 +154,26 @@ class Picow():
  # mess the mess
  # name the URL
  def sendserver(self, mess, name):
+  sendserverwdt(self, mess, name, wdt=None)
+
+ # same with wdt and a feed in the middle
+ def sendserverwdt(self, mess, name, wdt):
 
   myprint("sendserver: " + name)
 
   ai = socket.getaddrinfo(self.hostname, self.port)
   # myprint("Address infos:", ai)
   addr = ai[0][-1]
+  if wdt is not None:
+    wdt.feed()
 
   # Create a socket and make a HTTP request
   s = socket.socket()
   # myprint("Connect address:", addr)
   s.settimeout(SOCKTIMEOUT)
   s.connect(addr)
+  if wdt is not None:
+    wdt.feed()
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
@@ -191,7 +199,10 @@ class Picow():
 
   # Write the content of the temp.txt file
   s.write(mess)
+  if wdt is not None:
+    wdt.feed()
 
+  # here we will reset instead waiting for the timeout, because of the 8388 ms in WDT
   if not self.readwait(s, 50000):
     raise Exception("getfilefromserver: timeout")
 
@@ -200,6 +211,8 @@ class Picow():
   # myprint(resp)
 
   # done close the socket
+  if wdt is not None:
+    wdt.feed()
   s.close()
 
 

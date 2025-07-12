@@ -230,7 +230,7 @@ while True:
             time.sleep(1)
           pin_hyd.off()
       wdt.feed()
-      conf.sendserver(mess, url)
+      conf.sendserverwdt(mess, url, wdt)
     except:
       econnect = True
       myprint("exception in conf.sendserver()!")
