@@ -153,6 +153,7 @@ class nodeinfo:
               i = i + 1
           continue
       s.close()
+      myprint("nodeinfo.read Done")
       return False
       if (status == 404):
         # 404 means mainteance

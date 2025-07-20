@@ -48,19 +48,25 @@ def mytrace(mess):
   f.write(mess)
   f.write("\n")
   f.close()
+# create file to trigger deepsleep after restart
+# and reset
+def mydeepsleep():
+  f = open("sleep.txt", "a")
+  f.close()
+  time.sleep(1) # not os.sync() for the moment...
+  machine.reset()
 
+# First check for deepsleep after reset()
 # a file was created to tell us to sleep.
 try:
-    f = open("sleep.txt", "r")
-    f.close()
-    os.remove("sleep.txt")
-    # stop and reset after sleeptime
-    time.sleep(1) # not os.sync() for the moment...
-    machine.deepsleep(SLEEPTIME*1000)
+  f = open("sleep.txt", "r")
+  f.close()
+  os.remove("sleep.txt")
+  # stop and reset after sleeptime
+  time.sleep(1) # not os.sync() for the moment...
+  machine.deepsleep(SLEEPTIME*1000)
 except:
-    # we will sleep on the next restart
-    f = open("sleep.txt", "a")
-    f.close()
+  pass
 
 bat_adc = myadc.myadc(1)
 # Read the battery charge and write debug file
@@ -135,10 +141,7 @@ mytrace(mess)
 if valb < BATLOW:
   if not isusb():
     # We will deepsleep for while waiting for the battery to charge.
-    f = open("sleep.txt", "a")
-    f.close()
-    myprint("Going in deepsleep")
-    machine.reset()
+    mydeepsleep()
   else:
      myprint("NOT going in deepsleep USB connected!")
 
@@ -162,13 +165,16 @@ if i == 3:
   myprint(mess)
   mytrace(mess)
 
+# watchdog timer 8388 is the max value
+wdt = WDT(timeout=8000)  # enable it with a timeout of 8s
 # read where to send data
 myinfo = nodeinfo()
 conf.setserver(myinfo.server, 443, myinfo.login + ":" + myinfo.password)
-if myinfo.read(conf, None):
+if myinfo.read(conf, wdt):
   # Use some default values
   mess = "myinfo.read() Failed!"
   myprint(mess)
+  mytrace(mess)
   myinfo.TIME_ACTIVE = 1
   myinfo.WAIT_TIME = 3405
   myinfo.MAINT_MODE = False
@@ -178,8 +184,6 @@ if myinfo.read(conf, None):
     myprint('myinfo.readsaveinfo failed: Exception: ' + str(e))
 etag = myinfo.ETAG
 
-# watchdog timer 8388 is the max value
-wdt = WDT(timeout=8000)  # enable it with a timeout of 8s
 # next time to change the panel connection
 deadline = time.ticks_add(time.ticks_ms(), DELAYCHANGE)
 charging = True
@@ -192,8 +196,9 @@ while True:
   if valb < BATLOW:
     # reset will trigger the deepsleep
     mess = "Reset bat low"
+    myprint(mess)
     mytrace(mess)
-    machine.reset()
+    mydeepsleep()
   mess = "Bat : " + str(round(valb, 2)) + "\n"
    
   val = hyd_adc.readval()
