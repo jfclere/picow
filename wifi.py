@@ -153,10 +153,7 @@ class Picow():
  # connect and send message to the server
  # mess the mess
  # name the URL
- def sendserver(self, mess, name):
-  sendserverwdt(self, mess, name, wdt=None)
-
- # same with wdt and a feed in the middle
+ # wdt to send feeds during the process
  def sendserverwdt(self, mess, name, wdt):
 
   myprint("sendserver: " + name)
@@ -214,6 +211,10 @@ class Picow():
   if wdt is not None:
     wdt.feed()
   s.close()
+
+ # same without wdt...
+ def sendserver(self, mess, name):
+  self.sendserverwdt(mess, name, wdt=None)
 
 
  # connect and return a socket to the server

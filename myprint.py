@@ -9,3 +9,6 @@ def cantprint():
 def canprint():
   global canprint
   canprint = True
+def isusb():
+  global canprint
+  return canprint

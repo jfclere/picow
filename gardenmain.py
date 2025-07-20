@@ -38,9 +38,16 @@ import os
 
 # import our stuff
 import myadc
-from myprint import cantprint, canprint, myprint
+from myprint import cantprint, canprint, myprint, isusb
 import wifi
 from nodeinfo import nodeinfo
+
+# trace logic
+def mytrace(mess):
+  f = open("trace.txt", "a")
+  f.write(mess)
+  f.write("\n")
+  f.close()
 
 # a file was created to tell us to sleep.
 try:
@@ -56,12 +63,21 @@ except:
     f.close()
 
 bat_adc = myadc.myadc(1)
+# Read the battery charge and write debug file
+valb = bat_adc.readval()
+# 4.7k + 47k (should be ~ 11)
+valb = valb * BATFACTOR # my resistors are crappy!!!
+mess = "Bat : " + str(round(valb, 2))
+mytrace(mess)
+
 hyd_adc = myadc.myadc(0)
 sol_adc = myadc.myadc(2)
 
 # switch the board led on
 led = Pin('LED', Pin.OUT)
 led.on()
+mess = "LED board on"
+mytrace(mess)
 
 PANLED = 21
 HYDLED = 22
@@ -107,19 +123,24 @@ except:
   except:
     print("Something more was wrong...")
 
+mess = "After USB " + str(isusb())
+mytrace(mess)
 # Read the battery charge and go in sleep mode if not charged.
 valb = bat_adc.readval()
 # 4.7k + 47k (should be ~ 11)
 valb = valb * BATFACTOR # my resistors are crappy!!!
 mess = "Bat : " + str(round(valb, 2))
 myprint(mess)
+mytrace(mess)
 if valb < BATLOW:
-  # We will deepsleep for while waiting for the battery to charge.
-  f = open("sleep.txt", "a")
-  f.close()
-  myprint("Going in deepslepp")
-  time.sleep(10) # so that we can stop for debug... if we have USB???
-  machine.reset()
+  if not isbus():
+    # We will deepsleep for while waiting for the battery to charge.
+    f = open("sleep.txt", "a")
+    f.close()
+    myprint("Going in deepsleep")
+    machine.reset()
+  else:
+     myprint("NOT going in deepsleep USB connected!")
 
 # connect to the wifi
 econnect = False
@@ -137,14 +158,17 @@ while i < 3:
   break
 if i == 3:
   econnect = True
-  myprint("No wifi!")
+  mess = "No wifi!"
+  myprint(mess)
+  mytrace(mess)
 
 # read where to send data
 myinfo = nodeinfo()
 conf.setserver(myinfo.server, 443, myinfo.login + ":" + myinfo.password)
 if myinfo.read(conf):
   # Use some default values
-  myprint("myinfo.read() Failed!")
+  mess = "myinfo.read() Failed!"
+  myprint(mess)
   myinfo.TIME_ACTIVE = 1
   myinfo.WAIT_TIME = 3405
   myinfo.MAINT_MODE = False
@@ -167,6 +191,8 @@ while True:
   valb = valb * BATFACTOR # my resistors are crappy!!!
   if valb < BATLOW:
     # reset will trigger the deepsleep
+    mess = "Reset bat low"
+    mytrace(mess)
     machine.reset()
   mess = "Bat : " + str(round(valb, 2)) + "\n"
    
@@ -194,6 +220,7 @@ while True:
         myprint(mess)
       charging = True
     # send mess to the server
+    mytrace(mess)
     url =  "/webdav/" + myinfo.REMOTE_DIR + "/value.txt"
     try:
       if econnect:
@@ -214,9 +241,14 @@ while True:
           pin_hyd.off()
       wdt.feed()
       conf.sendserver(mess, url)
-    except:
+      mess = "After sendserver"
+      mytrace(mess)
+    except Exception as e:
       econnect = True
-      myprint("exception in conf.sendserver()!")
+      mess = "exception in conf.sendserver(): "
+      mess = mess + str(e)
+      myprint(mess)
+      mytrace(mess)
   time.sleep(1)
 
 pin_pan.off()
