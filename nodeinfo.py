@@ -81,14 +81,18 @@ class nodeinfo:
     return s
 
   # get our configuration from server
-  def read(self, wifi):
+  def read(self, wifi, wdt):
     myprint('nodeinfo.read')
     try:
-      s = wifi.getfromserver('/machines/' + self.machine_id)
-      if not wifi.readwait(s, 50000):
+      s = wifi.getfromserver('/machines/' + self.machine_id, wdt)
+      if wdt is not None:
+        wdt.feed()
+      if not wifi.readwait(s, 50000, wdt):
         myprint('nodeinfo.read Timeout!')
         return True
       resp = s.read(512)
+      if wdt is not None:
+        wdt.feed()
       if len(resp) < 20:
         myprint('nodeinfo.read too small!')
         return True

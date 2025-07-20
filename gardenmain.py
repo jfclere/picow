@@ -133,7 +133,7 @@ mess = "Bat : " + str(round(valb, 2))
 myprint(mess)
 mytrace(mess)
 if valb < BATLOW:
-  if not isbus():
+  if not isusb():
     # We will deepsleep for while waiting for the battery to charge.
     f = open("sleep.txt", "a")
     f.close()
@@ -165,7 +165,7 @@ if i == 3:
 # read where to send data
 myinfo = nodeinfo()
 conf.setserver(myinfo.server, 443, myinfo.login + ":" + myinfo.password)
-if myinfo.read(conf):
+if myinfo.read(conf, None):
   # Use some default values
   mess = "myinfo.read() Failed!"
   myprint(mess)
@@ -228,7 +228,7 @@ while True:
         conf.disconnectwifi()
         conf.connectwifi()
         econnect = False
-      if not myinfo.read(conf):
+      if not myinfo.read(conf, wdt):
         # check the etag for change.
         if etag != myinfo.ETAG:
           myprint("ETAG: " + etag + " New: " + myinfo.ETAG)
@@ -239,8 +239,7 @@ while True:
             wdt.feed()
             time.sleep(1)
           pin_hyd.off()
-      wdt.feed()
-      conf.sendserver(mess, url)
+      conf.sendserverwdt(mess, url, wdt)
       mess = "After sendserver"
       mytrace(mess)
     except Exception as e:

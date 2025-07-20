@@ -139,16 +139,22 @@ class Picow():
    self.wlan.deinit()
 
 # wait for data or timeout
- def readwait(self, s, mytime):
+# s socket
+# mytime time in ms
+# wdt timer to feed to prevent reset (Max value 8 seconds)
+ def readwait(self, s, mytime, wdt):
   poller = select.poll()
   poller.register(s, select.POLLIN)
-  res = poller.poll(mytime)  # time in milliseconds
-  if not res:
-    #timeout
-    myprint("timeout!")
-    s.close()
-    return False
-  return True
+  # wait and feed every second
+  numwait = mytime / 1000
+  for _ in range(numwait):
+    res = poller.poll(1000)  # time in milliseconds
+    if wdt is not None:
+      wdt.feed()
+    if res:
+      return True
+  s.close()
+  return False
 
  # connect and send message to the server
  # mess the mess
@@ -200,7 +206,7 @@ class Picow():
     wdt.feed()
 
   # here we will reset instead waiting for the timeout, because of the 8388 ms in WDT
-  if not self.readwait(s, 50000):
+  if not self.readwait(s, 50000, wdt):
     raise Exception("getfilefromserver: timeout")
 
   resp = s.read(512)
@@ -219,19 +225,23 @@ class Picow():
 
  # connect and return a socket to the server
  # connect and receive a file from server
- def getfromserver(self, name):
+ def getfromserver(self, name, wdt):
 
   myprint("getfromserver: " + name)
 
   ai = socket.getaddrinfo(self.hostname, self.port)
   # myprint("Address infos:", ai)
   addr = ai[0][-1]
+  if wdt is not None:
+    wdt.feed()
 
   # Create a socket and make a HTTP request
   s = socket.socket()
   # myprint("Connect address:", addr)
   s.settimeout(SOCKTIMEOUT)
   s.connect(addr)
+  if wdt is not None:
+    wdt.feed()
   # cadata=CA certificate chain (in DER format)
   cadata = self.getcadata()
   s = ssl.wrap_socket(s, cadata=cadata)
@@ -244,16 +254,20 @@ class Picow():
   s.write(b"Host: jfclere.myddns.me\r\n")
   s.write(b"User-Agent: picow/0.0.0\r\n")
   s.write(b"\r\n")
+  if wdt is not None:
+    wdt.feed()
   return s
 
  # connect and receive a file from server
- def getfilefromserver(self, name):
-  s = self.getfromserver("/webdav/" + name)
+ def getfilefromserver(self, name, wdt):
+  s = self.getfromserver("/webdav/" + name, wdt)
 
-  if not self.readwait(s, 50000):
+  if not self.readwait(s, 50000, wdt):
     raise Exception("getfilefromserver: timeout")
 
   resp = s.read(512)
+  if wdt is not None:
+    wdt.feed()
   string = str(resp, "utf-8")
   headers = string.split("\r\n")
   l = 0
@@ -280,10 +294,12 @@ class Picow():
       if size == l:
         break # Done!
   while size < l:
-    if not self.readwait(s, 50000):
+    if not self.readwait(s, 50000, wdt):
       f.close()
       raise Exception("getfilefromserver: timeout")
     resp = s.read(512)
+    if wdt is not None:
+      wdt.feed()
     f.write(resp)
     size = size + len(resp)
   f.close()
@@ -331,7 +347,7 @@ class Picow():
   s.write(b"\r\n")
 
   myprint("waiting response...")
-  if not self.readwait(s, 50000):
+  if not self.readwait(s, 50000, None):
     return 0
   resp = s.read(512)
   string = str(resp, "utf-8")
