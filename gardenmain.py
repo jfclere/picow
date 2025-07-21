@@ -7,7 +7,7 @@
 BATFACTOR = 12.30 # measured via IN219
 PINBAT = 27
 BATHIGH = 14.4
-BATLOW = 10.0
+BATLOW = 12.0
 
 # water sensor IDUINO
 # https://cdn.manomano.com/pim-dam-img/350/48640213/dfe24ab828c121029632ef8efd87a759d3e2c3ef.pdf
