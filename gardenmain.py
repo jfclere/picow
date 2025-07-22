@@ -44,10 +44,11 @@ from nodeinfo import nodeinfo
 
 # trace logic
 def mytrace(mess):
-  f = open("trace.txt", "a")
-  f.write(mess)
-  f.write("\n")
-  f.close()
+  myprint(mess)
+  # f = open("trace.txt", "a")
+  # f.write(mess)
+  # f.write("\n")
+  # f.close()
 # create file to trigger deepsleep after restart
 # and reset
 def mydeepsleep():
@@ -85,8 +86,20 @@ led.on()
 mess = "LED board on"
 mytrace(mess)
 
+# Those are for the cyber lavande
 PANLED = 21
 HYDLED = 22
+isgarden = False
+try:
+  f = open("machine-id", "r")
+  f.close()
+  isgarden = True
+except:
+  pass
+if isgarden:
+  # Those are for the cybergarden: a led is using 20/21/22
+  PANLED = 18
+  HYDLED = 19
 
 pin_pan = Pin(PANLED, Pin.OUT, 0)
 pin_hyd = Pin(HYDLED, Pin.OUT, 0)
