@@ -21,6 +21,9 @@ PINWAT = 26
 SOLFACTOR = 11.95
 PINSOL = 28
 
+# going to the ATTiny to control handing
+PINATT = 16
+
 # delay between changes (to prevent useless switching)
 # the valve is controled via IRF520
 # VIN to 12V of the battery
@@ -103,9 +106,11 @@ if isgarden:
 
 pin_pan = Pin(PANLED, Pin.OUT, 0)
 pin_hyd = Pin(HYDLED, Pin.OUT, 0)
+pin_att = Pin(PINATT, Pin.OUT, 0)
 
 pin_pan.off()
 pin_hyd.off()
+pin_att.off()
 
 # works only on picow (WL_ is wifi!)
 try:
@@ -203,6 +208,7 @@ charging = True
 while True:
   wdt.feed()
   led.toggle()
+  pin_att.toggle()
   valb = bat_adc.readval()
   # 4.7k + 47k (should be ~ 11)
   valb = valb * BATFACTOR # my resistors are crappy!!!
