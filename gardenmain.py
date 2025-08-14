@@ -14,7 +14,6 @@ BATLOW = 12.0
 # so a adc should be used
 # it is powered with 3.3V
 # it is on adc0
-PINWAT = 26
 
 # solar panel
 # it is on adc2
@@ -92,6 +91,7 @@ mytrace(mess)
 # Those are for the cyber lavande
 PANLED = 21
 HYDLED = 22
+EXTLED = 17 # we use a DRV8871 to driver the pump
 isgarden = False
 try:
   f = open("machine-id", "r")
@@ -107,10 +107,12 @@ if isgarden:
 pin_pan = Pin(PANLED, Pin.OUT, 0)
 pin_hyd = Pin(HYDLED, Pin.OUT, 0)
 pin_att = Pin(PINATT, Pin.OUT, 0)
+pin_ext = Pin(EXTLED, Pin.OUT, 0)
 
 pin_pan.off()
 pin_hyd.off()
 pin_att.off()
+pin_ext.off() # we won't revert the rotating so we are good
 
 # works only on picow (WL_ is wifi!)
 try:
